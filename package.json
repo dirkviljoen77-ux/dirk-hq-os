@@ -1,3 +1,4 @@
+
 {
   "name": "dirk-hq-os",
   "version": "1.0.0",
@@ -12,7 +13,7 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "^11.15.1",
+      "version": "11.15.1",
       "onFail": "download"
     }
   },
