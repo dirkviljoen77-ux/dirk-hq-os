@@ -3,8 +3,17 @@ import Card from "../components/dashboard/Card";
 import RecentProjects from "../components/dashboard/RecentProjects";
 import TodaysPriorities from "../components/dashboard/TodaysPriorities";
 import QuickActions from "../components/dashboard/QuickActions";
+import { projects } from "../data/projects";
 
 export default function Home() {
+  const activeProjects = projects.filter(
+    (project) => project.status === "Active"
+  ).length;
+
+  const totalDocuments = 128;
+  const outstandingTasks = 14;
+  const meetingsToday = 2;
+
   return (
     <main
       style={{
@@ -63,10 +72,10 @@ export default function Home() {
               gap: "20px",
             }}
           >
-            <Card title="Active Projects" value="6" />
-            <Card title="Outstanding Tasks" value="14" />
-            <Card title="Meetings Today" value="2" />
-            <Card title="Documents" value="128" />
+            <Card title="Active Projects" value={activeProjects.toString()} />
+            <Card title="Outstanding Tasks" value={outstandingTasks.toString()} />
+            <Card title="Meetings Today" value={meetingsToday.toString()} />
+            <Card title="Documents" value={totalDocuments.toString()} />
           </div>
 
           <div
