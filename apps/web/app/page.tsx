@@ -1,5 +1,9 @@
 import Sidebar from "../components/layout/Sidebar";
 import Card from "../components/dashboard/Card";
+import RecentProjects from "../components/dashboard/RecentProjects";
+import TodaysPriorities from "../components/dashboard/TodaysPriorities";
+import QuickActions from "../components/dashboard/QuickActions";
+
 export default function Home() {
   return (
     <main
@@ -13,16 +17,13 @@ export default function Home() {
     >
       <Sidebar />
 
-      {/* Right Side */}
       <section
         style={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
-
         }}
       >
-        {/* Header */}
         <header
           style={{
             height: "70px",
@@ -34,37 +35,60 @@ export default function Home() {
             borderBottom: "1px solid #334155",
           }}
         >
-          <h2>Dashboard</h2>
+          <div>
+            <h2 style={{ margin: 0 }}>Good Afternoon, Dirk</h2>
 
-          <div>Welcome, Dirk</div>
+            <p
+              style={{
+                margin: "5px 0 0 0",
+                color: "#cbd5e1",
+              }}
+            >
+              Welcome back. Here's what's happening today.
+            </p>
+          </div>
+
+          <div>🔔</div>
         </header>
 
-        {/* Main Content */}
         <main
           style={{
             flex: 1,
             padding: "40px",
           }}
         >
-          <h1>Welcome to Dirk HQ OS</h1>
-
-          <p>Your Personal Operating System</p>
+          <div
+            style={{
+              display: "flex",
+              gap: "20px",
+            }}
+          >
+            <Card title="Active Projects" value="6" />
+            <Card title="Outstanding Tasks" value="14" />
+            <Card title="Meetings Today" value="2" />
+            <Card title="Documents" value="128" />
+          </div>
 
           <div
-  style={{
-    display: "flex",
-    gap: "20px",
-    marginTop: "40px",
-  }}
->
-  <Card title="Projects" value="12" />
+            style={{
+              display: "flex",
+              gap: "20px",
+              marginTop: "30px",
+              alignItems: "flex-start",
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              <RecentProjects />
+            </div>
 
-  <Card title="Tasks" value="34" />
+            <div style={{ flex: 1 }}>
+              <TodaysPriorities />
+            </div>
+          </div>
 
-  <Card title="Broadcasts" value="7" />
-
-  <Card title="Revenue" value="$0" />
-</div>
+          <div style={{ marginTop: "30px" }}>
+            <QuickActions />
+          </div>
         </main>
       </section>
     </main>
