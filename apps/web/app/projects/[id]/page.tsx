@@ -1,4 +1,4 @@
-import AppShell from "../../../components/layout/AppShell";
+import AppShell from "../../../components/app/AppShell";
 import ProjectWorkspace from "../../../components/projects/ProjectWorkspace";
 
 import { notes } from "../../../data/notes";
