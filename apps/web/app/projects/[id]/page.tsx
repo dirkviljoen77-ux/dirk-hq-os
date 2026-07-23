@@ -1,4 +1,4 @@
-import AppShell from "../../../components/app/AppShell";
+import AppShell from "../../../components/layout/AppShell";
 import ProjectWorkspace from "../../../components/projects/ProjectWorkspace";
 
 import { notes } from "../../../data/notes";
@@ -21,7 +21,7 @@ export default async function ProjectPage({
 
   if (!project) {
     return (
-      <AppShell>
+      <AppShell title="Projects">
         <h1>Project not found</h1>
       </AppShell>
     );
@@ -32,7 +32,7 @@ export default async function ProjectPage({
   );
 
   return (
-    <AppShell>
+    <AppShell title={project.name}>
       <ProjectWorkspace
         project={project}
         notes={projectNotes}

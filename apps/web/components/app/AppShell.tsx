@@ -1,34 +1,48 @@
 "use client";
 
 import { ReactNode } from "react";
+
 import Sidebar from "../layout/Sidebar";
-import { theme } from "../../app/theme";
+import TopBar from "../layout/TopBar";
 
 type AppShellProps = {
   children: ReactNode;
+  title?: string;
 };
 
-export default function AppShell({ children }: AppShellProps) {
+export default function AppShell({
+  children,
+  title = "DIRK HQ",
+}: AppShellProps) {
   return (
-    <main
+    <div
       style={{
         display: "flex",
         minHeight: "100vh",
-        backgroundColor: theme.colors.background,
-        color: theme.colors.text,
-        fontFamily: "Arial, sans-serif",
+        background: "#f3f4f6",
       }}
     >
-      <Sidebar />
+      <Sidebar current="Projects" />
 
-      <section
+      <div
         style={{
           flex: 1,
-          padding: theme.spacing.xl,
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        {children}
-      </section>
-    </main>
+        <TopBar title={title} />
+
+        <main
+          style={{
+            flex: 1,
+            padding: "24px",
+            overflow: "auto",
+          }}
+        >
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }

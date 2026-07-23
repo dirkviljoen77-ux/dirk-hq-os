@@ -1,25 +1,62 @@
-export default function Sidebar() {
+type SidebarProps = {
+  current: string;
+};
+
+const items = [
+  "Dashboard",
+  "Projects",
+  "Calendar",
+  "Tasks",
+  "Meetings",
+  "People",
+  "Documents",
+  "AI Assistant",
+  "Settings",
+];
+
+export default function Sidebar({
+  current,
+}: SidebarProps) {
   return (
     <aside
       style={{
         width: "240px",
-        backgroundColor: "#1e293b",
-        padding: "20px",
+        minHeight: "100vh",
+        background: "#111827",
+        color: "#fff",
+        padding: "24px",
         boxSizing: "border-box",
       }}
     >
-      <h2>DIRK HQ OS</h2>
+      <div
+        style={{
+          fontSize: "24px",
+          fontWeight: 700,
+          marginBottom: "40px",
+        }}
+      >
+        DIRK HQ
+      </div>
 
-      <nav style={{ marginTop: "30px", lineHeight: "2.2" }}>
-        <p>🏠 Dashboard</p>
-        <p>📁 Projects</p>
-        <p>🎥 Broadcast</p>
-        <p>🏉 Sports</p>
-        <p>💰 Finance</p>
-        <p>📄 Documents</p>
-        <p>🤖 AI Assistant</p>
-        <p>⚙️ Settings</p>
-      </nav>
+      {items.map((item) => (
+        <div
+          key={item}
+          style={{
+            padding: "12px 16px",
+            marginBottom: "8px",
+            borderRadius: "8px",
+            cursor: "pointer",
+            background:
+              current === item
+                ? "#2563eb"
+                : "transparent",
+            fontWeight:
+              current === item ? 600 : 400,
+          }}
+        >
+          {item}
+        </div>
+      ))}
     </aside>
   );
 }
