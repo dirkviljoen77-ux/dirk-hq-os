@@ -4,10 +4,12 @@ import { useState } from "react";
 
 import { Meeting } from "../../types/meeting";
 import { Note } from "../../types/note";
+import { Person } from "../../types/person";
 import { Project } from "../../types/project";
 import { Task } from "../../types/task";
 
 import { meetings } from "../../data/meetings";
+import { people } from "../../data/people";
 import { tasks } from "../../data/tasks";
 
 import DashboardPanel from "../dashboard/DashboardPanel";
@@ -15,9 +17,12 @@ import MeetingEditor from "./MeetingEditor";
 import MeetingList from "./MeetingList";
 import NewMeetingButton from "./NewMeetingButton";
 import NewNoteButton from "./NewNoteButton";
+import NewPersonButton from "./NewPersonButton";
 import NewTaskButton from "./NewTaskButton";
 import NoteEditor from "./NoteEditor";
 import NotesList from "./NotesList";
+import PeopleList from "./PeopleList";
+import PersonEditor from "./PersonEditor";
 import ProjectHeader from "./ProjectHeader";
 import ProjectStatCard from "./ProjectStatCard";
 import TaskEditor from "./TaskEditor";
@@ -35,6 +40,7 @@ export default function ProjectWorkspace({
   const [showEditor, setShowEditor] = useState(false);
   const [showTaskEditor, setShowTaskEditor] = useState(false);
   const [showMeetingEditor, setShowMeetingEditor] = useState(false);
+  const [showPersonEditor, setShowPersonEditor] = useState(false);
 
   const [projectNotes, setProjectNotes] = useState(notes);
 
@@ -45,6 +51,8 @@ export default function ProjectWorkspace({
   const [projectMeetings, setProjectMeetings] = useState(
     meetings.filter((meeting) => meeting.projectId === project.id)
   );
+
+  const [projectPeople, setProjectPeople] = useState(people);
 
   const handleSave = (title: string, content: string) => {
     const newNote: Note = {
@@ -102,6 +110,28 @@ export default function ProjectWorkspace({
     setShowMeetingEditor(false);
   };
 
+  const handlePersonSave = (
+    name: string,
+    organisation: string,
+    role: string,
+    email: string,
+    phone: string
+  ) => {
+    if (!name.trim()) return;
+
+    const newPerson: Person = {
+      id: Date.now(),
+      name,
+      organisation,
+      role,
+      email,
+      phone,
+    };
+
+    setProjectPeople((prev) => [newPerson, ...prev]);
+    setShowPersonEditor(false);
+  };
+
   return (
     <>
       <div
@@ -113,7 +143,6 @@ export default function ProjectWorkspace({
         }}
       >
         <ProjectHeader project={project} />
-
         <NewNoteButton onClick={() => setShowEditor(true)} />
       </div>
 
@@ -127,7 +156,7 @@ export default function ProjectWorkspace({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
+          gridTemplateColumns: "repeat(5, 1fr)",
           gap: "20px",
           marginBottom: "30px",
         }}
@@ -136,14 +165,25 @@ export default function ProjectWorkspace({
           title="Tasks"
           value={projectTasks.length.toString()}
         />
-        <ProjectStatCard title="Documents" value="34" />
+
         <ProjectStatCard
           title="Meetings"
           value={projectMeetings.length.toString()}
         />
+
+        <ProjectStatCard
+          title="People"
+          value={projectPeople.length.toString()}
+        />
+
         <ProjectStatCard
           title="Notes"
           value={projectNotes.length.toString()}
+        />
+
+        <ProjectStatCard
+          title="Documents"
+          value="34"
         />
       </div>
 
@@ -195,6 +235,25 @@ export default function ProjectWorkspace({
           )}
 
           <MeetingList meetings={projectMeetings} />
+        </DashboardPanel>
+
+        <DashboardPanel title="People">
+          <div style={{ marginBottom: "16px" }}>
+            <NewPersonButton
+              onClick={() => setShowPersonEditor(true)}
+            />
+          </div>
+
+          {showPersonEditor && (
+            <PersonEditor
+              onSave={handlePersonSave}
+              onCancel={() =>
+                setShowPersonEditor(false)
+              }
+            />
+          )}
+
+          <PeopleList people={projectPeople} />
         </DashboardPanel>
       </div>
     </>
