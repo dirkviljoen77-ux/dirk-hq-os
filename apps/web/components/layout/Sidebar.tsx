@@ -1,17 +1,19 @@
+import Link from "next/link";
+
 type SidebarProps = {
   current: string;
 };
 
 const items = [
-  "Dashboard",
-  "Projects",
-  "Calendar",
-  "Tasks",
-  "Meetings",
-  "People",
-  "Documents",
-  "AI Assistant",
-  "Settings",
+  { label: "Dashboard", href: "/" },
+  { label: "Projects", href: "/projects" },
+  { label: "Calendar", href: "/calendar" },
+  { label: "Tasks", href: "/tasks" },
+  { label: "Meetings", href: "/meetings" },
+  { label: "People", href: "/people" },
+  { label: "Documents", href: "/documents" },
+  { label: "AI Assistant", href: "/assistant" },
+  { label: "Settings", href: "/settings" },
 ];
 
 export default function Sidebar({
@@ -39,23 +41,26 @@ export default function Sidebar({
       </div>
 
       {items.map((item) => (
-        <div
-          key={item}
+        <Link
+          key={item.label}
+          href={item.href}
           style={{
+            display: "block",
             padding: "12px 16px",
             marginBottom: "8px",
             borderRadius: "8px",
-            cursor: "pointer",
+            textDecoration: "none",
+            color: "#fff",
             background:
-              current === item
+              current === item.label
                 ? "#2563eb"
                 : "transparent",
             fontWeight:
-              current === item ? 600 : 400,
+              current === item.label ? 600 : 400,
           }}
         >
-          {item}
-        </div>
+          {item.label}
+        </Link>
       ))}
     </aside>
   );

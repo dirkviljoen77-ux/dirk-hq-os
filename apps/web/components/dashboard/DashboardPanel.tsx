@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { theme } from "../../app/theme";
 
 type DashboardPanelProps = {
   title: string;
@@ -13,23 +12,34 @@ export default function DashboardPanel({
   return (
     <div
       style={{
-        backgroundColor: theme.colors.surface,
-        borderRadius: theme.radius.md,
-        padding: theme.spacing.md,
-        border: `1px solid ${theme.colors.border}`,
+        backgroundColor: "#1E293B",
+        border: "1px solid #334155",
+        borderRadius: "12px",
+        padding: "24px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+        height: "100%",
       }}
     >
       <h2
         style={{
-          marginTop: 0,
-          marginBottom: theme.spacing.md,
-          color: theme.colors.text,
+          margin: 0,
+          marginBottom: "20px",
+          color: "#FFFFFF",
+          fontSize: "20px",
+          fontWeight: 600,
         }}
       >
         {title}
       </h2>
 
-      {children}
+      <div
+        style={{
+          color: "#E2E8F0",
+          lineHeight: 1.8,
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
