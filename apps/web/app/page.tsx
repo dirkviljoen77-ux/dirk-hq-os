@@ -1,4 +1,4 @@
-import AppShell from "../components/app/AppShell";
+import AppShell from "../components/layout/AppShell";
 import Dashboard from "../components/dashboard/Dashboard";
 
 export default function Home() {

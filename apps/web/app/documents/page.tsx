@@ -1,10 +1,9 @@
-import AppShell from "../../components/app/AppShell";
+import AppShell from "../../components/layout/AppShell";
 
-export default function DocumentsPage() {
+export default function Page() {
   return (
-    <AppShell title="Documents">
-      <h1>Documents</h1>
-      <p>Your document library.</p>
+    <AppShell>
+      <h1 style={{ color: "white" }}>Projects</h1>
     </AppShell>
   );
 }

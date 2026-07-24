@@ -27,6 +27,12 @@ import ProjectHeader from "./ProjectHeader";
 import ProjectStatCard from "./ProjectStatCard";
 import TaskEditor from "./TaskEditor";
 import TaskList from "./TaskList";
+import DocumentsList from "./DocumentsList";
+import Timeline, {
+  TimelineEvent,
+} from "./Timeline";
+
+import { documents } from "../../data/documents";
 
 type ProjectWorkspaceProps = {
   project: Project;
@@ -49,12 +55,44 @@ export default function ProjectWorkspace({
   );
 
   const [projectMeetings, setProjectMeetings] = useState(
-    meetings.filter((meeting) => meeting.projectId === project.id)
+    meetings.filter(
+      (meeting) => meeting.projectId === project.id
+    )
   );
 
-  const [projectPeople, setProjectPeople] = useState(people);
+  const [projectPeople, setProjectPeople] =
+    useState(people);
 
-  const handleSave = (title: string, content: string) => {
+    const [timelineEvents, setTimelineEvents] =
+    useState<TimelineEvent[]>([
+      {
+        id: 1,
+        projectId: project.id,
+        title: "Project workspace opened",
+        category: "System",
+        date: new Date().toISOString(),
+      },
+    ]);
+
+  const addTimelineEvent = (
+    title: string,
+    category: string
+  ) => {
+    setTimelineEvents((prev) => [
+      {
+        id: Date.now(),
+        projectId: project.id,
+        title,
+        category,
+        date: new Date().toISOString(),
+      },
+      ...prev,
+    ]);
+  };
+  const handleSave = (
+    title: string,
+    content: string
+  ) => {
     const newNote: Note = {
       id: Date.now(),
       projectId: project.id,
@@ -65,6 +103,12 @@ export default function ProjectWorkspace({
     };
 
     setProjectNotes((prev) => [newNote, ...prev]);
+
+    addTimelineEvent(
+      `Note created: ${newNote.title}`,
+      "Notes"
+    );
+
     setShowEditor(false);
   };
 
@@ -80,16 +124,51 @@ export default function ProjectWorkspace({
     };
 
     setProjectTasks((prev) => [newTask, ...prev]);
+
+    addTimelineEvent(
+      `Task created: ${title}`,
+      "Tasks"
+    );
+
     setShowTaskEditor(false);
   };
 
   const handleTaskToggle = (id: number) => {
     setProjectTasks((prev) =>
-      prev.map((task) =>
-        task.id === id
-          ? { ...task, completed: !task.completed }
-          : task
-      )
+      prev.map((task) => {
+        if (task.id !== id) return task;
+
+        const updatedTask = {
+          ...task,
+          completed: !task.completed,
+        };
+
+        addTimelineEvent(
+          updatedTask.completed
+            ? `Task completed: ${updatedTask.title}`
+            : `Task reopened: ${updatedTask.title}`,
+          "Tasks"
+        );
+
+        return updatedTask;
+      })
+    );
+  };
+
+  const handleTaskDelete = (id: number) => {
+    const task = projectTasks.find(
+      (t) => t.id === id
+    );
+
+    if (task) {
+      addTimelineEvent(
+        `Task deleted: ${task.title}`,
+        "Tasks"
+      );
+    }
+
+    setProjectTasks((prev) =>
+      prev.filter((task) => task.id !== id)
     );
   };
 
@@ -106,11 +185,19 @@ export default function ProjectWorkspace({
       date,
     };
 
-    setProjectMeetings((prev) => [newMeeting, ...prev]);
+    setProjectMeetings((prev) => [
+      newMeeting,
+      ...prev,
+    ]);
+
+    addTimelineEvent(
+      `Meeting scheduled: ${title}`,
+      "Meetings"
+    );
+
     setShowMeetingEditor(false);
   };
-
-  const handlePersonSave = (
+    const handlePersonSave = (
     name: string,
     organisation: string,
     role: string,
@@ -128,7 +215,16 @@ export default function ProjectWorkspace({
       phone,
     };
 
-    setProjectPeople((prev) => [newPerson, ...prev]);
+    setProjectPeople((prev) => [
+      newPerson,
+      ...prev,
+    ]);
+
+    addTimelineEvent(
+      `Person added: ${name}`,
+      "People"
+    );
+
     setShowPersonEditor(false);
   };
 
@@ -183,7 +279,9 @@ export default function ProjectWorkspace({
 
         <ProjectStatCard
           title="Documents"
-          value="34"
+          value={documents
+            .filter((d) => d.projectId === project.id)
+            .length.toString()}
         />
       </div>
 
@@ -208,20 +306,25 @@ export default function ProjectWorkspace({
           {showTaskEditor && (
             <TaskEditor
               onSave={handleTaskSave}
-              onCancel={() => setShowTaskEditor(false)}
+              onCancel={() =>
+                setShowTaskEditor(false)
+              }
             />
           )}
 
           <TaskList
             tasks={projectTasks}
             onToggle={handleTaskToggle}
+            onDelete={handleTaskDelete}
           />
         </DashboardPanel>
 
         <DashboardPanel title="Meetings">
           <div style={{ marginBottom: "16px" }}>
             <NewMeetingButton
-              onClick={() => setShowMeetingEditor(true)}
+              onClick={() =>
+                setShowMeetingEditor(true)
+              }
             />
           </div>
 
@@ -240,7 +343,9 @@ export default function ProjectWorkspace({
         <DashboardPanel title="People">
           <div style={{ marginBottom: "16px" }}>
             <NewPersonButton
-              onClick={() => setShowPersonEditor(true)}
+              onClick={() =>
+                setShowPersonEditor(true)
+              }
             />
           </div>
 
@@ -255,6 +360,13 @@ export default function ProjectWorkspace({
 
           <PeopleList people={projectPeople} />
         </DashboardPanel>
+
+        <DocumentsList projectId={project.id} />
+
+        <Timeline
+          projectId={project.id}
+          events={timelineEvents}
+        />
       </div>
     </>
   );

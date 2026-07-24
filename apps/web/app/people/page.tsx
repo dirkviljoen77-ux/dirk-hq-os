@@ -1,10 +1,9 @@
-import AppShell from "../../components/app/AppShell";
+import AppShell from "../../components/layout/AppShell";
 
-export default function PeoplePage() {
+export default function Page() {
   return (
-    <AppShell title="People">
-      <h1>People</h1>
-      <p>Your contacts and relationships.</p>
+    <AppShell>
+      <h1 style={{ color: "white" }}>Projects</h1>
     </AppShell>
   );
 }

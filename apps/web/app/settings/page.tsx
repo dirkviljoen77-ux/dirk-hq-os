@@ -1,10 +1,9 @@
-import AppShell from "../../components/app/AppShell";
+import AppShell from "../../components/layout/AppShell";
 
-export default function SettingsPage() {
+export default function Page() {
   return (
-    <AppShell title="Settings">
-      <h1>Settings</h1>
-      <p>Configure Dirk HQ OS.</p>
+    <AppShell>
+      <h1 style={{ color: "white" }}>Projects</h1>
     </AppShell>
   );
 }

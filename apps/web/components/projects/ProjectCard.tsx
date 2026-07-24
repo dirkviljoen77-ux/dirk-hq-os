@@ -1,50 +1,47 @@
-"use client";
+import { Project } from "./types";
 
-import Link from "next/link";
-import { Project } from "../../types/project";
-import { theme } from "../../app/theme";
-
-type ProjectCardProps = {
+type Props = {
   project: Project;
 };
 
-export default function ProjectCard({ project }: ProjectCardProps) {
+export default function ProjectCard({ project }: Props) {
   return (
-    <Link
-      href={`/projects/${project.id}`}
+    <div
       style={{
-        textDecoration: "none",
+        background: "#1E293B",
+        borderRadius: 12,
+        padding: 20,
+        border: "1px solid #334155",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
       }}
     >
-      <div
+      <h2
         style={{
-          backgroundColor: theme.colors.surface,
-          border: `1px solid ${theme.colors.border}`,
-          borderRadius: theme.radius.md,
-          padding: theme.spacing.md,
-          cursor: "pointer",
-          transition: "0.2s",
+          color: "white",
+          marginTop: 0,
+          marginBottom: 12,
+          fontSize: 20,
         }}
       >
-        <h3
-          style={{
-            margin: 0,
-            color: theme.colors.text,
-          }}
-        >
-          {project.name}
-        </h3>
+        {project.name}
+      </h2>
 
-        <p
-          style={{
-            marginTop: theme.spacing.sm,
-            marginBottom: 0,
-            color: theme.colors.textSecondary,
-          }}
-        >
-          Status: {project.status}
-        </p>
+      <div style={{ color: "#CBD5E1", marginBottom: 10 }}>
+        {project.status}
       </div>
-    </Link>
+
+      <div style={{ color: "#94A3B8", marginBottom: 8 }}>
+        Progress: {project.progress}%
+      </div>
+
+      <div style={{ color: "#94A3B8", marginBottom: 8 }}>
+        Owner: {project.owner}
+      </div>
+
+      <div style={{ color: "#94A3B8" }}>
+        Due: {project.due}
+      </div>
+    </div>
   );
 }
