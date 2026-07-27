@@ -5,4 +5,6 @@ export type Project = {
   progress: number;
   owner: string;
   due: string;
+
+  executiveBrief?: string;
 };

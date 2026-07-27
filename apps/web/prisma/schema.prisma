@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Workspace {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+
+  projects    Project[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  status      String    @default("Planned")
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  tasks        Task[]
+  meetings     Meeting[]
+  notes        Note[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+}
+
+model Person {
+  id          String    @id @default(uuid())
+  firstName   String
+  lastName    String
+  email       String?   @unique
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  title       String
+  status      String    @default("Todo")
+
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Meeting {
+  id          String    @id @default(uuid())
+  title       String
+  meetingDate DateTime
+
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Note {
+  id          String    @id @default(uuid())
+  title       String
+  content     String
+
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}

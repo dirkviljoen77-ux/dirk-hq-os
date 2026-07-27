@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: dirk-hq-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: dirkhq
+      POSTGRES_USER: dirk
+      POSTGRES_PASSWORD: dirk123
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

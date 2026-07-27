@@ -1,10 +1,8 @@
-import AppShell from "../../../components/app/AppShell";
-import ProjectWorkspace from "../../../components/projects/ProjectWorkspace";
+import AppShell from "../../../components/layout/AppShell";
+import { projects } from "../../../components/projects/data";
+import ProjectWorkspace from "../../../components/projects/workspace/ProjectWorkspace";
 
-import { notes } from "../../../data/notes";
-import { projects } from "../../../data/projects";
-
-type ProjectPageProps = {
+type Props = {
   params: Promise<{
     id: string;
   }>;
@@ -12,7 +10,7 @@ type ProjectPageProps = {
 
 export default async function ProjectPage({
   params,
-}: ProjectPageProps) {
+}: Props) {
   const { id } = await params;
 
   const project = projects.find(
@@ -21,22 +19,21 @@ export default async function ProjectPage({
 
   if (!project) {
     return (
-      <AppShell title="Projects">
-        <h1>Project not found</h1>
+      <AppShell>
+        <h1
+          style={{
+            color: "white",
+          }}
+        >
+          Project not found
+        </h1>
       </AppShell>
     );
   }
 
-  const projectNotes = notes.filter(
-    (note) => note.projectId === project.id
-  );
-
   return (
-    <AppShell title={project.name}>
-      <ProjectWorkspace
-        project={project}
-        notes={projectNotes}
-      />
+    <AppShell>
+      <ProjectWorkspace project={project} />
     </AppShell>
   );
 }
