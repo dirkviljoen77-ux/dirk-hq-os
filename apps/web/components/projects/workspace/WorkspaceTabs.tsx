@@ -11,8 +11,14 @@ const tabs = [
   "Meetings",
   "People",
   "Documents",
+  "Journal",
+  "Decisions",
+  "Risks",
+  "Milestones",
+  "Calendar",
   "Timeline",
   "Finance",
+  "Reports",
   "AI",
 ];
 

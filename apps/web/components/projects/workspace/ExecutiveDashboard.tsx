@@ -1,8 +1,21 @@
 "use client";
 
-import { useProject } from "../store/ProjectContext";
+import { useEffect, useState } from "react";
+import { getDashboardSummary } from "@/lib/actions/dashboard.actions";
+import ActivityTimeline from "./ActivityTimeline";
+
+type DashboardSummary = {
+  totalProjects: number;
+  activeProjects: number;
+  totalTasks: number;
+  completedTasks: number;
+  totalMeetings: number;
+  totalPeople: number;
+  totalDocuments: number;
+};
 
 type Props = {
+  projectId: string;
   projectName: string;
   owner: string;
   progress: number;
@@ -10,150 +23,136 @@ type Props = {
 };
 
 export default function ExecutiveDashboard({
+  projectId,
   projectName,
   owner,
   progress,
   status,
 }: Props) {
-  const { project } = useProject();
 
-  const completed = project.tasks.filter(
-    (t) => t.completed
-  ).length;
+  const [summary, setSummary] =
+    useState<DashboardSummary | null>(null);
 
-  const open = project.tasks.length - completed;
+  useEffect(() => {
+    async function load() {
+      const data = await getDashboardSummary();
+      setSummary(data);
+    }
 
-  const nextMeeting = project.meetings[0];
+    load();
+  }, []);
+
+  if (!summary) {
+    return <p>Loading dashboard...</p>;
+  }
 
   return (
     <>
       <h2 style={{ marginTop: 0 }}>
-        Executive Command Centre
+        Executive Dashboard
       </h2>
+
+      <p>
+        <strong>Project:</strong> {projectName}
+      </p>
+
+      <p>
+        <strong>Owner:</strong> {owner}
+      </p>
+
+      <p>
+        <strong>Status:</strong> {status}
+      </p>
+
+      <p>
+        <strong>Progress:</strong> {progress}%
+      </p>
+
+      <hr style={{ margin: "24px 0" }} />
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "2fr 1fr",
-          gap: 24,
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(220px,1fr))",
+          gap: 20,
         }}
       >
-        <div>
+        <Metric
+          title="Projects"
+          value={summary.totalProjects}
+        />
 
-          <DashboardCard title="Project Health">
+        <Metric
+          title="Active Projects"
+          value={summary.activeProjects}
+        />
 
-            <h1 style={{ margin: 0 }}>
-              {progress}%
-            </h1>
+        <Metric
+          title="Tasks"
+          value={summary.totalTasks}
+        />
 
-            <p>{status}</p>
+        <Metric
+          title="Completed Tasks"
+          value={summary.completedTasks}
+        />
 
-            <p>
-              Open Tasks: {open}
-            </p>
+        <Metric
+          title="Meetings"
+          value={summary.totalMeetings}
+        />
 
-            <p>
-              Completed Tasks: {completed}
-            </p>
+        <Metric
+          title="People"
+          value={summary.totalPeople}
+        />
 
-          </DashboardCard>
-
-          <DashboardCard title="Executive Priorities">
-
-            {open === 0 ? (
-              <p>No outstanding tasks.</p>
-            ) : (
-              project.tasks
-                .filter((t) => !t.completed)
-                .slice(0,5)
-                .map((t) => (
-                  <div
-                    key={t.id}
-                    style={{
-                      padding: "6px 0",
-                    }}
-                  >
-                    □ {t.title}
-                  </div>
-                ))
-            )}
-
-          </DashboardCard>
-
-        </div>
-
-        <div>
-
-          <DashboardCard title="Next Meeting">
-
-            {nextMeeting ? (
-              <>
-                <strong>
-                  {nextMeeting.title}
-                </strong>
-
-                <p>{nextMeeting.date}</p>
-
-                <p>
-                  {nextMeeting.attendees}
-                </p>
-              </>
-            ) : (
-              <p>No meetings scheduled.</p>
-            )}
-
-          </DashboardCard>
-
-          <DashboardCard title="Recent Activity">
-
-            {project.timeline
-              .slice(0,5)
-              .map((event)=>(
-                <div
-                  key={event.id}
-                  style={{
-                    paddingBottom:10,
-                  }}
-                >
-                  {event.description}
-                </div>
-              ))}
-
-          </DashboardCard>
-
-        </div>
-
+        <Metric
+          title="Documents"
+          value={summary.totalDocuments}
+        />
       </div>
+      <ActivityTimeline projectId={projectId} />
+      
     </>
   );
 }
 
-function DashboardCard({
+function Metric({
   title,
-  children,
-}:{
-  title:string;
-  children:React.ReactNode;
-}){
-
-  return(
-
+  value,
+}: {
+  title: string;
+  value: number;
+}) {
+  return (
     <div
       style={{
-        background:"#0F172A",
-        border:"1px solid #334155",
-        borderRadius:12,
-        padding:20,
-        marginBottom:20,
+        background: "#0F172A",
+        border: "1px solid #334155",
+        borderRadius: 12,
+        padding: 20,
       }}
     >
+      <div
+        style={{
+          color: "#94A3B8",
+          marginBottom: 8,
+        }}
+      >
+        {title}
+      </div>
 
-      <h3>{title}</h3>
-
-      {children}
-
+      <div
+        style={{
+          fontSize: 32,
+          fontWeight: 700,
+          color: "white",
+        }}
+      >
+        {value}
+      </div>
     </div>
-
-  )
-
+  );
 }

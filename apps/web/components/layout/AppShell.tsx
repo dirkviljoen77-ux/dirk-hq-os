@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
+import GlobalSearch from "./GlobalSearch";
 
 type AppShellProps = {
   children: ReactNode;
@@ -126,6 +127,8 @@ export default function AppShell({
             padding: 30,
           }}
         >
+          <GlobalSearch />
+
           {children}
         </main>
       </div>
