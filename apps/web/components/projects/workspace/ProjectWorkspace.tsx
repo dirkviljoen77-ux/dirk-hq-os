@@ -61,9 +61,10 @@ export default function ProjectWorkspace({
         )}
 
         {activeTab === "Meetings" && (
-          <MeetingsPanel
-            projectName={project.name}
-          />
+         <MeetingsPanel
+  projectId={project.id}
+  projectName={project.name}
+/> 
         )}
 
         {activeTab === "People" && (

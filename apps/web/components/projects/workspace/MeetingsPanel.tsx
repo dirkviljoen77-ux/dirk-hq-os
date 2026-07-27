@@ -1,52 +1,60 @@
 "use client";
 
-import { useState } from "react";
-
-type Meeting = {
-  id: number;
-  title: string;
-  date: string;
-  attendees: string;
-};
+import { useEffect, useState, useTransition } from "react";
+import {
+  createMeeting,
+  deleteMeeting,
+  getMeetings,
+} from "@/lib/actions/meeting.actions";
 
 type Props = {
+  projectId: string;
   projectName: string;
 };
 
-export default function MeetingsPanel({ projectName }: Props) {
-  const [meetings, setMeetings] = useState<Meeting[]>([
-    {
-      id: 1,
-      title: `${projectName} Weekly Review`,
-      date: "2026-07-15",
-      attendees: "Dirk, Project Team",
-    },
-  ]);
+type Meeting = {
+  id: string;
+  title: string;
+  meetingDate: Date;
+};
 
+export default function MeetingsPanel({
+  projectId,
+  projectName,
+}: Props) {
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [attendees, setAttendees] = useState("");
+  const [, startTransition] = useTransition();
 
-  function addMeeting() {
-    if (!title || !date) return;
-
-    setMeetings([
-      ...meetings,
-      {
-        id: Date.now(),
-        title,
-        date,
-        attendees,
-      },
-    ]);
-
-    setTitle("");
-    setDate("");
-    setAttendees("");
+  async function loadMeetings() {
+    const data = await getMeetings(projectId);
+    setMeetings(data);
   }
 
-  function deleteMeeting(id: number) {
-    setMeetings(meetings.filter((m) => m.id !== id));
+  useEffect(() => {
+    loadMeetings();
+  }, []);
+
+  async function handleCreate() {
+    if (!title.trim()) return;
+
+    startTransition(async () => {
+      await createMeeting({
+        title,
+        meetingDate: new Date(),
+        projectId,
+      });
+
+      setTitle("");
+      await loadMeetings();
+    });
+  }
+
+  async function handleDelete(id: string) {
+    startTransition(async () => {
+      await deleteMeeting(id);
+      await loadMeetings();
+    });
   }
 
   return (
@@ -55,36 +63,35 @@ export default function MeetingsPanel({ projectName }: Props) {
 
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1fr 2fr auto",
-          gap: 10,
+          display: "flex",
+          gap: 12,
           marginBottom: 24,
         }}
       >
         <input
-          placeholder="Meeting title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          style={inputStyle}
-        />
-
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          style={inputStyle}
-        />
-
-        <input
-          placeholder="Attendees"
-          value={attendees}
-          onChange={(e) => setAttendees(e.target.value)}
-          style={inputStyle}
+          placeholder={`New meeting for ${projectName}`}
+          style={{
+            flex: 1,
+            padding: 10,
+            borderRadius: 8,
+            border: "1px solid #475569",
+            background: "#0F172A",
+            color: "white",
+          }}
         />
 
         <button
-          onClick={addMeeting}
-          style={buttonStyle}
+          onClick={handleCreate}
+          style={{
+            padding: "10px 18px",
+            border: "none",
+            borderRadius: 8,
+            background: "#2563EB",
+            color: "white",
+            cursor: "pointer",
+          }}
         >
           Add
         </button>
@@ -94,33 +101,32 @@ export default function MeetingsPanel({ projectName }: Props) {
         <div
           key={meeting.id}
           style={{
-            padding: 16,
+            display: "flex",
+            justifyContent: "space-between",
+            padding: 12,
             borderBottom: "1px solid #334155",
           }}
         >
-          <div
-            style={{
-              fontWeight: 600,
-              fontSize: 18,
-            }}
-          >
-            {meeting.title}
-          </div>
+          <div>
+            <strong>{meeting.title}</strong>
 
-          <div style={{ color: "#CBD5E1" }}>
-            📅 {meeting.date}
-          </div>
-
-          <div style={{ color: "#CBD5E1" }}>
-            👥 {meeting.attendees}
+            <div
+              style={{
+                color: "#94A3B8",
+                marginTop: 6,
+              }}
+            >
+              {new Date(
+                meeting.meetingDate
+              ).toLocaleString()}
+            </div>
           </div>
 
           <button
-            onClick={() => deleteMeeting(meeting.id)}
+            onClick={() => handleDelete(meeting.id)}
             style={{
-              marginTop: 10,
-              background: "transparent",
               border: "none",
+              background: "transparent",
               color: "#EF4444",
               cursor: "pointer",
             }}
@@ -132,20 +138,3 @@ export default function MeetingsPanel({ projectName }: Props) {
     </>
   );
 }
-
-const inputStyle = {
-  padding: "10px",
-  borderRadius: 8,
-  border: "1px solid #475569",
-  background: "#0F172A",
-  color: "white",
-};
-
-const buttonStyle = {
-  padding: "10px 18px",
-  borderRadius: 8,
-  border: "none",
-  background: "#2563EB",
-  color: "white",
-  cursor: "pointer",
-};

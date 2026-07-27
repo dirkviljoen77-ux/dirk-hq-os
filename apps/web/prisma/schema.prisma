@@ -68,15 +68,21 @@ model Task {
 }
 
 model Meeting {
-  id          String    @id @default(uuid())
+  id          String      @id @default(uuid())
   title       String
+  description String?
+
   meetingDate DateTime
 
-  projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
+  location    String?
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  status      MeetingStatus @default(SCHEDULED)
+
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
 }
 
@@ -97,4 +103,10 @@ enum TaskStatus {
   IN_PROGRESS
   REVIEW
   COMPLETE
+}
+enum MeetingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
