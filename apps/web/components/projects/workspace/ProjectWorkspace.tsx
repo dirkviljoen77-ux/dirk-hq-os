@@ -21,8 +21,7 @@ type Props = {
 export default function ProjectWorkspace({
   project,
 }: Props) {
-  const [activeTab, setActiveTab] =
-    useState("Overview");
+  const [activeTab, setActiveTab] = useState("Overview");
 
   return (
     <ProjectProvider>
@@ -37,62 +36,59 @@ export default function ProjectWorkspace({
 
       <div
         style={{
-          background:"#1E293B",
-          border:"1px solid #334155",
-          borderRadius:12,
-          padding:24,
-          minHeight:500,
-          color:"white",
+          background: "#1E293B",
+          border: "1px solid #334155",
+          borderRadius: 12,
+          padding: 24,
+          minHeight: 500,
+          color: "white",
         }}
       >
-        {activeTab==="Overview" && (
-
+        {activeTab === "Overview" && (
           <ExecutiveDashboard
             projectName={project.name}
             owner={project.owner}
             progress={project.progress}
             status={project.status}
           />
-
         )}
 
-        {activeTab==="Tasks" && (
-          <TasksPanel
-            projectName={project.name}
-          />
+        {activeTab === "Tasks" && (
+        <TasksPanel
+  projectId={project.id}
+  projectName={project.name}
+/>  
         )}
 
-        {activeTab==="Meetings" && (
+        {activeTab === "Meetings" && (
           <MeetingsPanel
             projectName={project.name}
           />
         )}
 
-        {activeTab==="People" && (
+        {activeTab === "People" && (
           <h2>People coming next…</h2>
         )}
 
-        {activeTab==="Documents" && (
+        {activeTab === "Documents" && (
           <h2>Documents coming next…</h2>
         )}
 
-        {activeTab==="Timeline" && (
-          <TimelinePanel/>
+        {activeTab === "Timeline" && (
+          <TimelinePanel />
         )}
 
-        {activeTab==="Finance" && (
+        {activeTab === "Finance" && (
           <h2>Finance coming next…</h2>
         )}
 
-        {activeTab==="AI" && (
+        {activeTab === "AI" && (
           <AIPanel
             projectName={project.name}
             owner={project.owner}
           />
         )}
-
       </div>
-
     </ProjectProvider>
   );
 }

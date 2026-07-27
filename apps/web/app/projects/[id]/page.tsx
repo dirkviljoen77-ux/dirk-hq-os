@@ -1,6 +1,6 @@
 import AppShell from "../../../components/layout/AppShell";
-import { projects } from "../../../components/projects/data";
 import ProjectWorkspace from "../../../components/projects/workspace/ProjectWorkspace";
+import { getProject } from "@/lib/actions/project.actions";
 
 type Props = {
   params: Promise<{
@@ -13,11 +13,10 @@ export default async function ProjectPage({
 }: Props) {
   const { id } = await params;
 
-  const project = projects.find(
-    (p) => p.id === Number(id)
-  );
+  // Read the project from PostgreSQL
+  const dbProject = await getProject(id);
 
-  if (!project) {
+  if (!dbProject) {
     return (
       <AppShell>
         <h1
@@ -30,6 +29,16 @@ export default async function ProjectPage({
       </AppShell>
     );
   }
+
+  // Temporary UI mapping
+  const project = {
+    id: dbProject.id,
+    name: dbProject.name,
+    status: dbProject.status,
+    progress: 0,
+    owner: "Dirk Viljoen",
+    due: "-",
+  };
 
   return (
     <AppShell>
