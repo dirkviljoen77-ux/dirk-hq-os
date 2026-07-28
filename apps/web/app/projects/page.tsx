@@ -6,7 +6,7 @@ import { getProjects } from "@/lib/actions/project.actions";
 export default async function ProjectsPage() {
   const projects = await getProjects();
 
-  const mappedProjects = projects.map((project) => ({
+  const mappedProjects = projects.map((project: any) => ({
     id: project.id,
     name: project.name,
     status: project.status,
