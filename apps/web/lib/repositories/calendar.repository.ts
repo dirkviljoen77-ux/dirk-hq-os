@@ -23,21 +23,21 @@ class CalendarRepository {
     ]);
 
     const events = [
-      ...tasks.map((task) => ({
+      ...tasks.map((task: any) => ({
         id: task.id,
         title: `✅ ${task.title}`,
         start: task.dueDate!,
         color: "#F59E0B",
       })),
 
-      ...meetings.map((meeting) => ({
+      ...meetings.map((meeting: any) => ({
         id: meeting.id,
         title: `📅 ${meeting.title}`,
         start: meeting.meetingDate,
         color: "#2563EB",
       })),
 
-      ...milestones.map((milestone) => ({
+      ...milestones.map((milestone: any) => ({
         id: milestone.id,
         title: `🏁 ${milestone.title}`,
         start: milestone.dueDate!,
