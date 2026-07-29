@@ -1,8 +1,10 @@
+export const dynamic = "force-dynamic";
+
 import AppShell from "../../components/layout/AppShell";
 import ProjectGrid from "../../components/projects/ProjectGrid";
 import PortfolioSummary from "../../components/projects/PortfolioSummary";
 import { getProjects } from "@/lib/actions/project.actions";
-
+import Link from "next/link";
 export default async function ProjectsPage() {
   const projects = await getProjects();
 
@@ -46,19 +48,19 @@ export default async function ProjectsPage() {
           </p>
         </div>
 
-        <button
+        <Link
+          href="/projects/new"
           style={{
             padding: "12px 20px",
             background: "#2563EB",
             color: "white",
-            border: "none",
             borderRadius: 8,
-            cursor: "pointer",
+            textDecoration: "none",
             fontWeight: 600,
           }}
         >
           + New Project
-        </button>
+        </Link>
       </div>
 
       <div
@@ -69,7 +71,6 @@ export default async function ProjectsPage() {
         }}
       >
         <ProjectGrid projects={mappedProjects} />
-
         <PortfolioSummary />
       </div>
     </AppShell>

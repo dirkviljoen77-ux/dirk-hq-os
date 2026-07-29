@@ -13,7 +13,6 @@ export async function getProject(id: string) {
 export async function createProject(data: {
   name: string;
   description?: string;
-  workspaceId: string;
 }) {
   return projectRepository.create(data);
 }

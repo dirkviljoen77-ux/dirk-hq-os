@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 export interface CreateProjectInput {
   name: string;
   description?: string;
-  workspaceId: string;
 }
 
 export interface UpdateProjectInput {
@@ -30,8 +29,24 @@ class ProjectRepository {
   }
 
   async create(data: CreateProjectInput) {
+    const workspace = await prisma.workspace.findFirst({
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    if (!workspace) {
+      throw new Error(
+        "No Workspace found. Run: pnpm prisma db seed"
+      );
+    }
+
     return prisma.project.create({
-      data,
+      data: {
+        ...data,
+        status: "Planned",
+        workspaceId: workspace.id,
+      },
     });
   }
 

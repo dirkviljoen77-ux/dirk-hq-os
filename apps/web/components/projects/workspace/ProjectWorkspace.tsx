@@ -22,6 +22,7 @@ import FinancePanel from "./FinancePanel";
 import JournalPanel from "./JournalPanel";
 import CalendarPanel from "./CalendarPanel";
 import ReportsPanel from "./ReportsPanel";
+
 type Props = {
   project: Project;
 };
@@ -53,83 +54,91 @@ export default function ProjectWorkspace({
         }}
       >
         {activeTab === "Overview" && (
-         <ExecutiveDashboard
-  projectId={project.id}
-  projectName={project.name}
-  owner={project.owner}
-  progress={project.progress}
-  status={project.status}
-/>
+          <ExecutiveDashboard
+            projectId={project.id}
+            projectName={project.name}
+            owner={project.owner}
+            progress={project.progress}
+            status={project.status}
+          />
         )}
 
         {activeTab === "Tasks" && (
-        <TasksPanel
-  projectId={project.id}
-  projectName={project.name}
-/>  
+          <TasksPanel
+            projectId={project.id}
+            projectName={project.name}
+          />
         )}
 
         {activeTab === "Meetings" && (
-         <MeetingsPanel
-  projectId={project.id}
-  projectName={project.name}
-/> 
+          <MeetingsPanel
+            projectId={project.id}
+            projectName={project.name}
+          />
         )}
 
         {activeTab === "People" && (
-  <PeoplePanel
-    projectId={project.id}
-  />
-)}
+          <PeoplePanel
+            projectId={project.id}
+          />
+        )}
 
         {activeTab === "Documents" && (
-  <DocumentsPanel
-    projectId={project.id}
-  />
-)}
-{activeTab === "Journal" && (
-  <JournalPanel
-    projectId={project.id}
-  />
-)}
-{activeTab === "Decisions" && (
-  <DecisionsPanel
-    projectId={project.id}
-  />
-)}
-{activeTab === "Risks" && (
-  <RisksPanel
-    projectId={project.id}
-  />
-)}
-{activeTab === "Milestones" && (
-  <MilestonesPanel
-    projectId={project.id}
-  />
-)}
-{activeTab === "Calendar" && (
-  <CalendarPanel />
-)}
+          <DocumentsPanel
+            projectId={project.id}
+          />
+        )}
+
+        {activeTab === "Journal" && (
+          <JournalPanel
+            projectId={project.id}
+          />
+        )}
+
+        {activeTab === "Decisions" && (
+          <DecisionsPanel
+            projectId={project.id}
+          />
+        )}
+
+        {activeTab === "Risks" && (
+          <RisksPanel
+            projectId={project.id}
+          />
+        )}
+
+        {activeTab === "Milestones" && (
+          <MilestonesPanel
+            projectId={project.id}
+          />
+        )}
+
+        {activeTab === "Calendar" && (
+          <CalendarPanel />
+        )}
+
         {activeTab === "Timeline" && (
           <TimelinePanel />
         )}
 
         {activeTab === "Finance" && (
-  <FinancePanel
-    projectId={project.id}
-  />
-)}
-{activeTab === "Reports" && (
-  <ReportsPanel
-    projectId={project.id}
-  />
-)}
+          <FinancePanel
+            projectId={project.id}
+          />
+        )}
+
+        {activeTab === "Reports" && (
+          <ReportsPanel
+            projectId={project.id}
+          />
+        )}
+
         {activeTab === "AI" && (
-       <AIPanel
-  projectId={project.id}
-  projectName={project.name}
-  owner={project.owner}
-/>  
+          <AIPanel
+            projectId={project.id}
+            projectName={project.name}
+            owner={project.owner}
+          />
         )}
       </div>
     </ProjectProvider>
