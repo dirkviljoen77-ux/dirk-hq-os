@@ -41,10 +41,19 @@ class MeetingRepository {
   }
 
   async create(data: CreateMeetingInput) {
-    return prisma.meeting.create({
-      data,
-    });
-  }
+  return prisma.meeting.create({
+    data: {
+      title: data.title,
+      description: data.description,
+      meetingDate: data.meetingDate,
+      location: data.location,
+
+      ...(data.projectId
+        ? { project: { connect: { id: data.projectId } } }
+        : {}),
+    },
+  });
+}
 
   async update(id: string, data: UpdateMeetingInput) {
     return prisma.meeting.update({
