@@ -14,7 +14,7 @@ const menu = [
   { label: "Projects", href: "/projects" },
   { label: "Calendar", href: "/calendar" },
   { label: "Documents", href: "/documents" },
-  { label: "People", href: "/people" },
+ 
   { label: "Settings", href: "/settings" },
 ];
 
@@ -95,27 +95,16 @@ export default function AppShell({
         }}
       >
         <header
-          style={{
-            height: 70,
-            borderBottom: "1px solid #1E293B",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 30px",
-          }}
-        >
-          <input
-            placeholder="Search anything..."
-            style={{
-              width: 420,
-              padding: "12px 16px",
-              borderRadius: 8,
-              border: "1px solid #334155",
-              background: "#1E293B",
-              color: "white",
-              outline: "none",
-            }}
-          />
+  style={{
+    height: 70,
+    borderBottom: "1px solid #1E293B",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    padding: "0 30px",
+  }}
+>
+          
 
           <strong>Dirk Viljoen</strong>
         </header>
