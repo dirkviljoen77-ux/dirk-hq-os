@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import type { EventClickArg } from "@fullcalendar/core";
 
 import { getCalendar } from "@/lib/actions/calendar.actions";
 
@@ -17,6 +19,8 @@ type CalendarEvent = {
 };
 
 export default function CalendarPanel() {
+  const router = useRouter();
+
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   useEffect(() => {
@@ -27,6 +31,16 @@ export default function CalendarPanel() {
 
     load();
   }, []);
+
+  function handleDateClick(info: any) {
+  const selectedDate = info.dateStr;
+
+  router.push(`/meetings/new?date=${selectedDate}`);
+}
+
+  function handleEventClick(info: EventClickArg) {
+  router.push(`/meetings/${info.event.id}`);
+}
 
   return (
     <div
@@ -56,12 +70,12 @@ export default function CalendarPanel() {
         weekends={true}
         editable={false}
         selectable={true}
+        selectMirror={true}
         dayMaxEvents={3}
         height="auto"
         events={events}
-        eventClick={(info) => {
-          alert(info.event.title);
-        }}
+        dateClick={handleDateClick}
+        eventClick={handleEventClick}
       />
     </div>
   );

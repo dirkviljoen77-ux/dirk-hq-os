@@ -16,6 +16,9 @@ type Props = {
 type Task = {
   id: string;
   title: string;
+  description?: string | null;
+  dueDate?: Date | null;
+  priority?: number;
   status: string;
 };
 
@@ -25,6 +28,9 @@ export default function TasksPanel({
 }: Props) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [priority, setPriority] = useState(2);
+
   const [, startTransition] = useTransition();
 
   async function loadTasks() {
@@ -34,7 +40,7 @@ export default function TasksPanel({
 
   useEffect(() => {
     loadTasks();
-  }, []);
+  }, [projectId]);
 
   async function handleAdd() {
     if (!newTask.trim()) return;
@@ -43,9 +49,16 @@ export default function TasksPanel({
       await createTask({
         title: newTask,
         projectId,
+        priority,
+        dueDate: dueDate
+          ? new Date(`${dueDate}T09:00:00`)
+          : undefined,
       });
 
       setNewTask("");
+      setDueDate("");
+      setPriority(2);
+
       await loadTasks();
     });
   }
@@ -70,7 +83,8 @@ export default function TasksPanel({
 
       <div
         style={{
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: "2fr 170px 130px 100px",
           gap: 12,
           marginBottom: 24,
         }}
@@ -80,7 +94,6 @@ export default function TasksPanel({
           onChange={(e) => setNewTask(e.target.value)}
           placeholder={`New task for ${projectName}`}
           style={{
-            flex: 1,
             padding: 10,
             borderRadius: 8,
             border: "1px solid #475569",
@@ -89,10 +102,40 @@ export default function TasksPanel({
           }}
         />
 
+        <input
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          style={{
+            padding: 10,
+            borderRadius: 8,
+            border: "1px solid #475569",
+            background: "#0F172A",
+            color: "white",
+          }}
+        />
+
+        <select
+          value={priority}
+          onChange={(e) =>
+            setPriority(Number(e.target.value))
+          }
+          style={{
+            padding: 10,
+            borderRadius: 8,
+            border: "1px solid #475569",
+            background: "#0F172A",
+            color: "white",
+          }}
+        >
+          <option value={1}>High</option>
+          <option value={2}>Normal</option>
+          <option value={3}>Low</option>
+        </select>
+
         <button
           onClick={handleAdd}
           style={{
-            padding: "10px 18px",
             border: "none",
             borderRadius: 8,
             background: "#2563EB",
@@ -110,7 +153,8 @@ export default function TasksPanel({
           style={{
             display: "flex",
             justifyContent: "space-between",
-            padding: 12,
+            alignItems: "center",
+            padding: 14,
             borderBottom: "1px solid #334155",
           }}
         >
@@ -118,7 +162,9 @@ export default function TasksPanel({
             <input
               type="checkbox"
               checked={task.status === "COMPLETE"}
-              onChange={() => handleComplete(task.id)}
+              onChange={() =>
+                handleComplete(task.id)
+              }
             />
 
             <span
@@ -128,14 +174,33 @@ export default function TasksPanel({
                   task.status === "COMPLETE"
                     ? "line-through"
                     : "none",
+                fontWeight: 600,
               }}
             >
               {task.title}
             </span>
+
+            {task.dueDate && (
+              <div
+                style={{
+                  marginTop: 6,
+                  marginLeft: 28,
+                  fontSize: 13,
+                  color: "#94A3B8",
+                }}
+              >
+                Due:{" "}
+                {new Date(
+                  task.dueDate
+                ).toLocaleDateString()}
+              </div>
+            )}
           </div>
 
           <button
-            onClick={() => handleDelete(task.id)}
+            onClick={() =>
+              handleDelete(task.id)
+            }
             style={{
               border: "none",
               background: "transparent",

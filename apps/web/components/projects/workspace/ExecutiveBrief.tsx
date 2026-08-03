@@ -9,11 +9,20 @@ type Props = {
 };
 
 type ExecutiveBrief = {
-  tasks: unknown[];
-  meetings: unknown[];
-  people: unknown[];
-  documents: unknown[];
-  activity: unknown[];
+  projectName: string;
+  projectHealth: string;
+  progress: number;
+
+  openTasks: number;
+  completedTasks: number;
+
+  upcomingMeetings: number;
+  upcomingMilestones: number;
+
+  people: number;
+  documents: number;
+
+  recentActivity: number;
 };
 
 export default function ExecutiveBrief({
@@ -68,23 +77,31 @@ export default function ExecutiveBrief({
         }}
       />
 
-      {!brief ? (
-        <p
-          style={{
-            color: "#94A3B8",
-          }}
-        >
-          Loading executive data...
-        </p>
-      ) : (
-        <>
-          <p>Open Tasks: {brief.tasks.length}</p>
-          <p>Meetings: {brief.meetings.length}</p>
-          <p>People: {brief.people.length}</p>
-          <p>Documents: {brief.documents.length}</p>
-          <p>Recent Activity: {brief.activity.length}</p>
-        </>
-      )}
+     {!brief ? (
+  <p
+    style={{
+      color: "#94A3B8",
+    }}
+  >
+    Loading executive data...
+  </p>
+) : (
+  <>
+    <p>Health: {brief.projectHealth}</p>
+    <p>Progress: {brief.progress}%</p>
+
+    <p>Open Tasks: {brief.openTasks}</p>
+    <p>Completed Tasks: {brief.completedTasks}</p>
+
+    <p>Upcoming Meetings: {brief.upcomingMeetings}</p>
+    <p>Upcoming Milestones: {brief.upcomingMilestones}</p>
+
+    <p>People: {brief.people}</p>
+    <p>Documents: {brief.documents}</p>
+
+    <p>Recent Activity: {brief.recentActivity}</p>
+  </>
+)}
     </div>
   );
 }

@@ -8,7 +8,10 @@ export interface CreateDocumentInput {
   description?: string;
   projectId: string;
 }
-
+export interface UpdateDocumentInput {
+  name?: string;
+  description?: string;
+}
 class DocumentRepository {
   async findByProject(projectId: string) {
     return prisma.document.findMany({
@@ -26,7 +29,17 @@ class DocumentRepository {
       data,
     });
   }
-
+async update(
+  id: string,
+  data: UpdateDocumentInput
+) {
+  return prisma.document.update({
+    where: {
+      id,
+    },
+    data,
+  });
+}
   async delete(id: string) {
     return prisma.document.delete({
       where: {

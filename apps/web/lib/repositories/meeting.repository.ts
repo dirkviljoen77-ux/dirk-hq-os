@@ -5,7 +5,7 @@ export interface CreateMeetingInput {
   description?: string;
   meetingDate: Date;
   location?: string;
-  projectId: string;
+  projectId?: string;
 }
 
 export interface UpdateMeetingInput {

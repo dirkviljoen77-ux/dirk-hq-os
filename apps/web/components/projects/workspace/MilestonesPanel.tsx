@@ -14,6 +14,8 @@ type Props = {
 type Milestone = {
   id: string;
   title: string;
+  description?: string | null;
+  dueDate?: Date | null;
   status: string;
 };
 
@@ -22,6 +24,8 @@ export default function MilestonesPanel({
 }: Props) {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [title, setTitle] = useState("");
+  const [dueDate, setDueDate] = useState("");
+
   const [, startTransition] = useTransition();
 
   async function loadMilestones() {
@@ -40,9 +44,14 @@ export default function MilestonesPanel({
       await createMilestone({
         title,
         projectId,
+        dueDate: dueDate
+          ? new Date(`${dueDate}T09:00:00`)
+          : undefined,
       });
 
       setTitle("");
+      setDueDate("");
+
       await loadMilestones();
     });
   }
@@ -60,7 +69,8 @@ export default function MilestonesPanel({
 
       <div
         style={{
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: "2fr 180px 100px",
           gap: 12,
           marginBottom: 24,
         }}
@@ -70,7 +80,19 @@ export default function MilestonesPanel({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="New milestone"
           style={{
-            flex: 1,
+            padding: 10,
+            borderRadius: 8,
+            border: "1px solid #475569",
+            background: "#0F172A",
+            color: "white",
+          }}
+        />
+
+        <input
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          style={{
             padding: 10,
             borderRadius: 8,
             border: "1px solid #475569",
@@ -82,7 +104,6 @@ export default function MilestonesPanel({
         <button
           onClick={handleAdd}
           style={{
-            padding: "10px 18px",
             border: "none",
             borderRadius: 8,
             background: "#2563EB",
@@ -100,12 +121,19 @@ export default function MilestonesPanel({
           style={{
             display: "flex",
             justifyContent: "space-between",
-            padding: 12,
+            alignItems: "center",
+            padding: 14,
             borderBottom: "1px solid #334155",
           }}
         >
           <div>
-            <strong>{milestone.title}</strong>
+            <div
+              style={{
+                fontWeight: 600,
+              }}
+            >
+              {milestone.title}
+            </div>
 
             <div
               style={{
@@ -115,6 +143,21 @@ export default function MilestonesPanel({
             >
               {milestone.status}
             </div>
+
+            {milestone.dueDate && (
+              <div
+                style={{
+                  color: "#94A3B8",
+                  fontSize: 13,
+                  marginTop: 4,
+                }}
+              >
+                Due:{" "}
+                {new Date(
+                  milestone.dueDate
+                ).toLocaleDateString()}
+              </div>
+            )}
           </div>
 
           <button

@@ -20,9 +20,12 @@ export default function NewProjectPage() {
   ) {
     e.preventDefault();
 
+    console.log("STEP 1 - Submit clicked");
+
     setError("");
 
     if (!name.trim()) {
+      console.log("STEP 2 - Validation failed");
       setError("Project name is required.");
       return;
     }
@@ -30,17 +33,25 @@ export default function NewProjectPage() {
     try {
       setSaving(true);
 
+      console.log("STEP 3 - Calling createProject");
+
       const project = await createProject({
         name,
         description,
       });
 
+      console.log("STEP 4 - Returned:", project);
+
       router.push(`/projects/${project.id}`);
+
+      console.log("STEP 5 - Redirecting");
+
       router.refresh();
     } catch (err) {
-      console.error(err);
+      console.error("STEP 6 - ERROR", err);
       setError("Unable to create project.");
     } finally {
+      console.log("STEP 7 - Finished");
       setSaving(false);
     }
   }
@@ -53,12 +64,7 @@ export default function NewProjectPage() {
           margin: "0 auto",
         }}
       >
-        <h1
-          style={{
-            color: "white",
-            marginBottom: 8,
-          }}
-        >
+        <h1 style={{ color: "white", marginBottom: 8 }}>
           New Project
         </h1>
 
@@ -96,9 +102,7 @@ export default function NewProjectPage() {
 
             <input
               value={name}
-              onChange={(e) =>
-                setName(e.target.value)
-              }
+              onChange={(e) => setName(e.target.value)}
               style={{
                 width: "100%",
                 padding: 12,
@@ -125,9 +129,7 @@ export default function NewProjectPage() {
             <textarea
               rows={6}
               value={description}
-              onChange={(e) =>
-                setDescription(e.target.value)
-              }
+              onChange={(e) => setDescription(e.target.value)}
               style={{
                 width: "100%",
                 padding: 12,
@@ -142,11 +144,7 @@ export default function NewProjectPage() {
           </div>
 
           {error && (
-            <div
-              style={{
-                color: "#EF4444",
-              }}
-            >
+            <div style={{ color: "#EF4444" }}>
               {error}
             </div>
           )}
@@ -169,9 +167,7 @@ export default function NewProjectPage() {
                 cursor: "pointer",
               }}
             >
-              {saving
-                ? "Creating..."
-                : "Create Project"}
+              {saving ? "Creating..." : "Create Project"}
             </button>
 
             <Link

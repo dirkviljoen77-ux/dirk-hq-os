@@ -37,47 +37,27 @@ export default function ReportsPanel({
           borderCollapse: "collapse",
         }}
       >
-        <tbody>
-          <tr>
-            <td>Tasks</td>
-            <td>{report.tasks.length}</td>
-          </tr>
+    <tbody>
+  <tr>
+    <td>Tasks</td>
+    <td>{report.tasks.length}</td>
+  </tr>
 
-          <tr>
-            <td>Meetings</td>
-            <td>{report.meetings.length}</td>
-          </tr>
+  <tr>
+    <td>Meetings</td>
+    <td>{report.meetings.length}</td>
+  </tr>
 
-          <tr>
-            <td>People</td>
-            <td>{report.people.length}</td>
-          </tr>
+  <tr>
+    <td>Documents</td>
+    <td>{report.documents.length}</td>
+  </tr>
 
-          <tr>
-            <td>Documents</td>
-            <td>{report.documents.length}</td>
-          </tr>
-
-          <tr>
-            <td>Decisions</td>
-            <td>{report.decisions.length}</td>
-          </tr>
-
-          <tr>
-            <td>Risks</td>
-            <td>{report.risks.length}</td>
-          </tr>
-
-          <tr>
-            <td>Milestones</td>
-            <td>{report.milestones.length}</td>
-          </tr>
-
-          <tr>
-            <td>Journal Entries</td>
-            <td>{report.journalEntries.length}</td>
-          </tr>
-        </tbody>
+  <tr>
+    <td>Activity</td>
+    <td>{report.activity.length}</td>
+  </tr>
+</tbody>    
       </table>
     </>
   );

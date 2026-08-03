@@ -57,34 +57,62 @@ class ExecutiveBriefRepository {
     const openTasks = tasks.filter(
   (t) => t.status !== "COMPLETE"
 );
+const completedTasks = tasks.filter(
+  (t) => t.status === "COMPLETE"
+);
 
-const nextMeeting =
-  meetings.length > 0 ? meetings[0] : null;
+const milestones =
+  await prisma.milestone.findMany({
+    where: {
+      projectId,
+    },
+  });
+
+const upcomingMeetings = meetings.filter(
+  (m) => m.meetingDate >= new Date()
+);
+
+const upcomingMilestones =
+  milestones.filter(
+    (m) =>
+      m.dueDate &&
+      m.dueDate >= new Date() &&
+      m.status !== "COMPLETE"
+  );
+
+const projectHealth =
+  openTasks.length === 0
+    ? "On Track"
+    : openTasks.length <= 5
+    ? "Attention"
+    : "At Risk";
 
 return {
-  project,
-  tasks,
-  meetings,
-  people,
-  documents,
-  activity,
+  projectName: project?.name ?? "",
 
-  summary: {
-    openTasks: openTasks.length,
-    completedTasks:
-      tasks.length - openTasks.length,
+  projectHealth,
 
-    totalPeople: people.length,
+  progress: 0,
 
-    totalDocuments:
-      documents.length,
+  openTasks: openTasks.length,
 
-    recentActivity:
-      activity.length,
+  completedTasks:
+    completedTasks.length,
 
-    nextMeeting,
-  },
+  upcomingMeetings:
+    upcomingMeetings.length,
+
+  upcomingMilestones:
+    upcomingMilestones.length,
+
+  people: people.length,
+
+  documents: documents.length,
+
+  recentActivity:
+    activity.length,
 };
+
   }
 }
 

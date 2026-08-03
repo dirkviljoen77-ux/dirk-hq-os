@@ -2,22 +2,34 @@ import { prisma } from "@/lib/prisma";
 
 class ReportRepository {
   async getProjectReport(projectId: string) {
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      include: {
-        tasks: true,
-        meetings: true,
-        people: true,
-        documents: true,
-        decisions: true,
-        risks: true,
-        milestones: true,
-        finance: true,
-        journalEntries: true,
-      },
-    });
+    const [project, activity] =
+      await Promise.all([
+        prisma.project.findUnique({
+          where: {
+            id: projectId,
+          },
+          include: {
+            tasks: true,
+            meetings: true,
+            documents: true,
+          },
+        }),
 
-    return project;
+        prisma.activity.findMany({
+          where: {
+            projectId,
+          },
+          take: 20,
+          orderBy: {
+            createdAt: "desc",
+          },
+        }),
+      ]);
+
+    return {
+      ...project,
+      activity,
+    };
   }
 }
 

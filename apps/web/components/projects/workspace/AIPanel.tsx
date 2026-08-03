@@ -59,7 +59,7 @@ export default function AIPanel({
       >
         <Metric title="Tasks" value={context.tasks.length} />
         <Metric title="Meetings" value={context.meetings.length} />
-        <Metric title="People" value={context.people.length} />
+        
         <Metric title="Documents" value={context.documents.length} />
         <Metric title="Activity" value={context.activities.length} />
       </div>

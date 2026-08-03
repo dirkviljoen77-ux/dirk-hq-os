@@ -11,15 +11,10 @@ import WorkspaceTabs from "./WorkspaceTabs";
 import ExecutiveDashboard from "./ExecutiveDashboard";
 import TasksPanel from "./TasksPanel";
 import MeetingsPanel from "./MeetingsPanel";
-import TimelinePanel from "./TimelinePanel";
+import ActivityPanel from "./ActivityPanel";
 import AIPanel from "./AIPanel";
-import PeoplePanel from "./PeoplePanel";
+
 import DocumentsPanel from "./DocumentsPanel";
-import DecisionsPanel from "./DecisionsPanel";
-import RisksPanel from "./RisksPanel";
-import MilestonesPanel from "./MilestonesPanel";
-import FinancePanel from "./FinancePanel";
-import JournalPanel from "./JournalPanel";
 import CalendarPanel from "./CalendarPanel";
 import ReportsPanel from "./ReportsPanel";
 
@@ -77,11 +72,7 @@ export default function ProjectWorkspace({
           />
         )}
 
-        {activeTab === "People" && (
-          <PeoplePanel
-            projectId={project.id}
-          />
-        )}
+        
 
         {activeTab === "Documents" && (
           <DocumentsPanel
@@ -89,43 +80,21 @@ export default function ProjectWorkspace({
           />
         )}
 
-        {activeTab === "Journal" && (
-          <JournalPanel
-            projectId={project.id}
-          />
-        )}
+        
 
-        {activeTab === "Decisions" && (
-          <DecisionsPanel
-            projectId={project.id}
-          />
-        )}
-
-        {activeTab === "Risks" && (
-          <RisksPanel
-            projectId={project.id}
-          />
-        )}
-
-        {activeTab === "Milestones" && (
-          <MilestonesPanel
-            projectId={project.id}
-          />
-        )}
+        
 
         {activeTab === "Calendar" && (
           <CalendarPanel />
         )}
 
-        {activeTab === "Timeline" && (
-          <TimelinePanel />
-        )}
+        {activeTab === "Activity" && (
+  <ActivityPanel
+  projectId={project.id}
+/>
+)}
 
-        {activeTab === "Finance" && (
-          <FinancePanel
-            projectId={project.id}
-          />
-        )}
+        
 
         {activeTab === "Reports" && (
           <ReportsPanel

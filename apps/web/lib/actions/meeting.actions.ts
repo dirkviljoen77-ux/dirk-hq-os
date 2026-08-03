@@ -8,23 +8,58 @@ export async function getMeetings(projectId: string) {
   return meetingRepository.findByProject(projectId);
 }
 
+export async function getMeeting(id: string) {
+  return meetingRepository.findById(id);
+}
+
 export async function createMeeting(data: {
   title: string;
   description?: string;
   meetingDate: Date;
   location?: string;
-  projectId: string;
+  projectId?: string;
 }) {
   const meeting = await meetingRepository.create(data);
 
-  await logActivity({
-    type: "MEETING_CREATED",
-    title: data.title,
-    description: "Meeting created",
-    projectId: data.projectId,
-  });
+  if (data.projectId) {
+    await logActivity({
+      type: "MEETING_CREATED",
+      title: data.title,
+      description: "Meeting created",
+      projectId: data.projectId,
+    });
 
-  revalidatePath(`/projects/${data.projectId}`);
+    revalidatePath(`/projects/${data.projectId}`);
+  }
+
+  revalidatePath("/calendar");
+  revalidatePath("/meetings");
+
+  return meeting;
+}
+
+export async function updateMeeting(
+  id: string,
+  data: {
+    title?: string;
+    description?: string;
+    meetingDate?: Date;
+    location?: string;
+    status?:
+      | "SCHEDULED"
+      | "IN_PROGRESS"
+      | "COMPLETED"
+      | "CANCELLED";
+  }
+) {
+  const meeting = await meetingRepository.update(id, data);
+
+  revalidatePath("/calendar");
+  revalidatePath("/meetings");
+
+  if (meeting.projectId) {
+    revalidatePath(`/projects/${meeting.projectId}`);
+  }
 
   return meeting;
 }
@@ -37,9 +72,16 @@ export async function deleteMeeting(id: string) {
       type: "MEETING_DELETED",
       title: meeting.title,
       description: "Meeting deleted",
-      projectId: meeting.projectId,
+      projectId: meeting.projectId ?? undefined,
     });
   }
 
-  return meetingRepository.delete(id);
+  await meetingRepository.delete(id);
+
+  revalidatePath("/calendar");
+  revalidatePath("/meetings");
+
+  if (meeting?.projectId) {
+    revalidatePath(`/projects/${meeting.projectId}`);
+  }
 }

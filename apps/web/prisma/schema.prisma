@@ -72,14 +72,14 @@ model Meeting {
   id          String        @id @default(uuid())
   title       String
   meetingDate DateTime
-  projectId   String
+  projectId   String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   deletedAt   DateTime?
   description String?
   location    String?
   status      MeetingStatus @default(SCHEDULED)
-  project     Project       @relation(fields: [projectId], references: [id])
+  project     Project?       @relation(fields: [projectId], references: [id])
 }
 
 model Document {

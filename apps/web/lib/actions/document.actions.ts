@@ -29,7 +29,29 @@ export async function createDocument(data: {
 
   return document;
 }
+export async function updateDocument(
+  id: string,
+  data: {
+    name?: string;
+    description?: string;
+  }
+) {
+  const document =
+    await documentRepository.update(id, data);
 
+  await logActivity({
+    type: "DOCUMENT_UPDATED",
+    title: document.name,
+    description: "Document updated",
+    projectId: document.projectId,
+  });
+
+  revalidatePath(
+    `/projects/${document.projectId}`
+  );
+
+  return document;
+}
 export async function deleteDocument(id: string) {
   return documentRepository.delete(id);
 }
