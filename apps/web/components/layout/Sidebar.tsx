@@ -10,7 +10,7 @@ const items = [
   { label: "Calendar", href: "/calendar" },
   { label: "Tasks", href: "/tasks" },
   { label: "Meetings", href: "/meetings" },
-  { label: "People", href: "/people" },
+ 
   { label: "Documents", href: "/documents" },
   { label: "AI Assistant", href: "/assistant" },
   { label: "Settings", href: "/settings" },

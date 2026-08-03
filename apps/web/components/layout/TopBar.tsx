@@ -11,7 +11,7 @@ export default function TopBar({
         height: "72px",
         borderBottom: "1px solid #e5e7eb",
         display: "flex",
-        justifyContent: "space-between",
+       justifyContent: "space-between",
         alignItems: "center",
         padding: "0 24px",
         boxSizing: "border-box",
@@ -37,17 +37,7 @@ export default function TopBar({
           gap: "16px",
         }}
       >
-        <input
-          type="text"
-          placeholder="Search..."
-          style={{
-            width: "280px",
-            padding: "10px 14px",
-            border: "1px solid #d1d5db",
-            borderRadius: "8px",
-            outline: "none",
-          }}
-        />
+        
 
         <div
           style={{
