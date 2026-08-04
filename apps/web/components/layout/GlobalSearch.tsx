@@ -71,15 +71,7 @@ export default function GlobalSearch() {
             <div key={m.id}>{m.title}</div>
           ))}
 
-          <h3 style={{ marginTop: 20 }}>
-            People ({results.people.length})
-          </h3>
-
-          {results.people.map((p: any) => (
-            <div key={p.id}>
-              {p.firstName} {p.lastName}
-            </div>
-          ))}
+          
 
           <h3 style={{ marginTop: 20 }}>
             Documents ({results.documents.length})

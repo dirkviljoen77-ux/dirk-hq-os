@@ -51,7 +51,8 @@ export default function AppShell({
             fontSize: 24,
           }}
         >
-          Dirk HQ
+          Dirk HQ 
+        
         </h2>
 
         <nav
