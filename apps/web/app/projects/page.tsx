@@ -10,7 +10,7 @@ export default async function ProjectsPage({ searchParams }: Props) {
   const projects = await getProjects();
   const { status } = await searchParams;
   const visibleProjects = status === "active"
-    ? projects.filter((project) => project.status.toLowerCase() === "active")
+    ? projects.filter((project) => project.status.toLowerCase() !== "completed")
     : projects;
 
   const mappedProjects = visibleProjects.map((project: any) => ({
