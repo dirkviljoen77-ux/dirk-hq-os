@@ -38,31 +38,37 @@ export async function createDocument(data: {
 }
 
 export async function uploadDocument(formData: FormData) {
-  const file = formData.get("file");
-  const projectId = formData.get("projectId");
-  const name = formData.get("name");
+  try {
+    const file = formData.get("file");
+    const projectId = formData.get("projectId");
+    const name = formData.get("name");
 
-  if (!(file instanceof File) || !projectId || typeof projectId !== "string") {
-    throw new Error("Choose a file and project before uploading.");
+    if (!(file instanceof File) || !projectId || typeof projectId !== "string") {
+      return { error: "Choose a file and project before uploading." };
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      return { error: "Files must be 25 MB or smaller." };
+    }
+
+    const driveFile = await uploadToGoogleDrive(file);
+    const document = await createDocument({
+      name: typeof name === "string" && name.trim() ? name.trim() : file.name,
+      fileName: file.name,
+      fileType: file.type || "application/octet-stream",
+      fileSize: file.size,
+      projectId,
+      driveFileId: driveFile.id,
+      webViewLink: driveFile.webViewLink ?? `https://drive.google.com/open?id=${driveFile.id}`,
+    });
+
+    revalidatePath("/documents");
+    return { document };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Google Drive upload failed.",
+    };
   }
-
-  if (file.size > 25 * 1024 * 1024) {
-    throw new Error("Files must be 25 MB or smaller.");
-  }
-
-  const driveFile = await uploadToGoogleDrive(file);
-  const document = await createDocument({
-    name: typeof name === "string" && name.trim() ? name.trim() : file.name,
-    fileName: file.name,
-    fileType: file.type || "application/octet-stream",
-    fileSize: file.size,
-    projectId,
-    driveFileId: driveFile.id,
-    webViewLink: driveFile.webViewLink ?? `https://drive.google.com/open?id=${driveFile.id}`,
-  });
-
-  revalidatePath("/documents");
-  return document;
 }
 export async function updateDocument(
   id: string,

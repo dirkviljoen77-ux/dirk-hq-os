@@ -68,7 +68,11 @@ export default function DocumentsWorkspace({ documents: initialDocuments, projec
 
     startTransition(async () => {
       try {
-        await uploadDocument(formData);
+        const result = await uploadDocument(formData);
+        if ("error" in result) {
+          setError(result.error);
+          return;
+        }
         setDocuments(await getAllDocuments());
         setSelectedFile(null);
         setCustomName("");
