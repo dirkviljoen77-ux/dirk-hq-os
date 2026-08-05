@@ -3,11 +3,17 @@ import { prisma } from "@/lib/prisma";
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 
-function getOAuthConfig() {
+function getOAuthCredentials() {
   const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+  if (!clientId || !clientSecret) throw new Error("Google OAuth is not configured.");
+  return { clientId, clientSecret };
+}
+
+function getOAuthConfig() {
+  const { clientId, clientSecret } = getOAuthCredentials();
   const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI;
-  if (!clientId || !clientSecret || !redirectUri) throw new Error("Google OAuth is not configured.");
+  if (!redirectUri) throw new Error("Google OAuth redirect URL is not configured.");
   return { clientId, clientSecret, redirectUri };
 }
 
@@ -33,7 +39,7 @@ export async function createGoogleDriveConnection(code: string) {
 async function getAccessToken() {
   const connection = await prisma.googleDriveConnection.findUnique({ where: { id: "default" } });
   if (!connection) throw new Error("Connect Google Drive before uploading.");
-  const { clientId, clientSecret } = getOAuthConfig();
+  const { clientId, clientSecret } = getOAuthCredentials();
   const response = await fetch(TOKEN_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ client_id: clientId, client_secret: clientSecret, refresh_token: connection.refreshToken, grant_type: "refresh_token" }) });
   if (!response.ok) throw new Error("Google Drive connection expired. Connect Google Drive again.");
   const token = await response.json() as { access_token: string };
