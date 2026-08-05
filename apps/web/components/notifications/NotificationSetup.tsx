@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -14,6 +14,16 @@ function toUint8Array(value: string) {
 export default function NotificationSetup() {
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    async function checkSubscription() {
+      if (!("serviceWorker" in navigator)) return;
+      const registration = await navigator.serviceWorker.ready;
+      setEnabled(Boolean(await registration.pushManager.getSubscription()));
+    }
+    checkSubscription().catch(() => undefined);
+  }, []);
 
   async function enable() {
     if (!publicKey) {
@@ -35,16 +45,18 @@ export default function NotificationSetup() {
 
       await navigator.serviceWorker.register("/notifications-sw.js");
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: toUint8Array(publicKey),
-      });
+      const subscription = await registration.pushManager.getSubscription()
+        ?? await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: toUint8Array(publicKey),
+        });
       const response = await fetch("/api/notifications/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscription),
       });
       if (!response.ok) throw new Error("Unable to save notification settings.");
+      setEnabled(true);
       setMessage("Notifications enabled. Meeting reminders arrive one hour before.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to enable notifications.");
@@ -56,7 +68,7 @@ export default function NotificationSetup() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
       <button type="button" onClick={enable} disabled={pending} style={{ padding: "10px 14px", border: 0, borderRadius: 8, background: "#2563EB", color: "white", cursor: "pointer" }}>
-        {pending ? "Enabling…" : "Enable meeting alerts"}
+        {pending ? "Saving…" : enabled ? "Meeting alerts enabled" : "Enable meeting alerts"}
       </button>
       {message && <span style={{ color: "#CBD5E1", fontSize: 14 }}>{message}</span>}
     </div>
