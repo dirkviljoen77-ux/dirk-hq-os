@@ -2,17 +2,12 @@ import Card from "./Card";
 import RecentProjects from "./RecentProjects";
 import TodaysPriorities from "./TodaysPriorities";
 import QuickActions from "./QuickActions";
-import { projects } from "../../data/projects";
 import AIMorningBrief from "./AIMorningBrief";
 import UpcomingMeetings from "./UpcomingMeetings";
-export default function Dashboard() {
-  const activeProjects = projects.filter(
-    (project) => project.status === "Active"
-  ).length;
+import { dashboardRepository } from "@/lib/repositories/dashboard.repository";
 
-  const totalDocuments = 128;
-  const outstandingTasks = 14;
-  const meetingsToday = 2;
+export default async function Dashboard() {
+  const dashboard = await dashboardRepository.getLiveDashboard();
 
   const now = new Date();
 
@@ -70,10 +65,10 @@ export default function Dashboard() {
           gap: "20px",
         }}
       >
-        <Card title="Active Projects" value={activeProjects.toString()} />
-        <Card title="Outstanding Tasks" value={outstandingTasks.toString()} />
-        <Card title="Meetings Today" value={meetingsToday.toString()} />
-        <Card title="Documents" value={totalDocuments.toString()} />
+        <Card title="Active Projects" value={dashboard.activeProjects.toString()} />
+        <Card title="Outstanding Tasks" value={dashboard.outstandingTasks.toString()} />
+        <Card title="Meetings Today" value={dashboard.meetingsToday.toString()} />
+        <Card title="Documents" value={dashboard.documents.toString()} />
       </div>
 
       <div
@@ -85,15 +80,15 @@ export default function Dashboard() {
   }}
 >
   <div style={{ flex: 1 }}>
-    <RecentProjects />
+    <RecentProjects projects={dashboard.recentProjects} />
   </div>
 
   <div style={{ flex: 1 }}>
-    <TodaysPriorities />
+    <TodaysPriorities priorities={dashboard.priorities} />
   </div>
 
   <div style={{ flex: 1 }}>
-    <AIMorningBrief />
+    <AIMorningBrief activeProjects={dashboard.activeProjects} outstandingTasks={dashboard.outstandingTasks} nextMeeting={dashboard.upcomingMeetings[0]} />
   </div>
 </div>
 
@@ -106,7 +101,7 @@ export default function Dashboard() {
   }}
 >
   <div style={{ flex: 1 }}>
-    <UpcomingMeetings />
+    <UpcomingMeetings meetings={dashboard.upcomingMeetings} />
   </div>
 
   <div style={{ flex: 1 }}>

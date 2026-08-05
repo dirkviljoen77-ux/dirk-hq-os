@@ -1,6 +1,41 @@
 import { prisma } from "@/lib/prisma";
 
 class DashboardRepository {
+  async getLiveDashboard() {
+    const now = new Date();
+    const harareDate = new Date(now.getTime() + 2 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10);
+    const todayStart = new Date(`${harareDate}T00:00:00+02:00`);
+    const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+    const [activeProjects, outstandingTasks, meetingsToday, documents, recentProjects, priorities, upcomingMeetings] = await Promise.all([
+      prisma.project.count({ where: { status: { not: "Completed" } } }),
+      prisma.task.count({ where: { status: { not: "COMPLETE" } } }),
+      prisma.meeting.count({ where: { meetingDate: { gte: todayStart, lt: tomorrowStart }, status: { not: "CANCELLED" } } }),
+      prisma.document.count(),
+      prisma.project.findMany({
+        take: 4,
+        orderBy: { updatedAt: "desc" },
+        select: { id: true, name: true, status: true },
+      }),
+      prisma.task.findMany({
+        where: { dueDate: { gte: todayStart, lt: tomorrowStart }, status: { not: "COMPLETE" } },
+        take: 4,
+        orderBy: [{ priority: "asc" }, { dueDate: "asc" }],
+        select: { id: true, title: true, project: { select: { name: true } } },
+      }),
+      prisma.meeting.findMany({
+        where: { meetingDate: { gte: now }, status: { not: "CANCELLED" } },
+        take: 4,
+        orderBy: { meetingDate: "asc" },
+        select: { id: true, title: true, meetingDate: true },
+      }),
+    ]);
+
+    return { activeProjects, outstandingTasks, meetingsToday, documents, recentProjects, priorities, upcomingMeetings };
+  }
+
   async getSummary() {
     const [
       totalProjects,

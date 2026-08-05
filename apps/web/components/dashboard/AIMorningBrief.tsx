@@ -1,8 +1,10 @@
 import DashboardPanel from "./DashboardPanel";
 
-export default function AIMorningBrief() {
+type Props = { activeProjects: number; outstandingTasks: number; nextMeeting?: { title: string; meetingDate: Date } };
+
+export default function AIMorningBrief({ activeProjects, outstandingTasks, nextMeeting }: Props) {
   return (
-    <DashboardPanel title="AI Morning Brief">
+    <DashboardPanel title="Today's Brief">
       <ul
         style={{
           margin: 0,
@@ -10,10 +12,9 @@ export default function AIMorningBrief() {
           lineHeight: 1.8,
         }}
       >
-        <li>Review BHPC model progress.</li>
-        <li>Follow up podcast studio proposal.</li>
-        <li>Review active projects.</li>
-        <li>Complete Sprint 11.</li>
+        <li>{activeProjects} active project{activeProjects === 1 ? "" : "s"}.</li>
+        <li>{outstandingTasks} outstanding task{outstandingTasks === 1 ? "" : "s"}.</li>
+        {nextMeeting ? <li>Next meeting: {nextMeeting.title} at {new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(nextMeeting.meetingDate)}.</li> : <li>No upcoming meetings.</li>}
       </ul>
     </DashboardPanel>
   );

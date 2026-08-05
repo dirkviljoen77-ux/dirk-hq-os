@@ -1,10 +1,11 @@
 import DashboardPanel from "./DashboardPanel";
-import { projects } from "../../data/projects";
 
-export default function RecentProjects() {
+type Props = { projects: { id: string; name: string; status: string }[] };
+
+export default function RecentProjects({ projects }: Props) {
   return (
     <DashboardPanel title="Recent Projects">
-      {projects.map((project) => (
+      {projects.length === 0 ? <p style={{ margin: 0, color: "#94A3B8" }}>No projects yet.</p> : projects.map((project) => (
         <div
           key={project.id}
           style={{

@@ -1,12 +1,14 @@
+import Link from "next/link";
 import DashboardPanel from "./DashboardPanel";
 
 export default function QuickActions() {
   const actions = [
     "New Project",
-    "New Note",
-    "AI Workspace",
+    "New Meeting",
+    "Calendar",
     "Open Documents",
   ];
+  const hrefs = ["/projects/new", "/meetings/new", "/calendar", "/documents"];
 
   return (
     <DashboardPanel title="Quick Actions">
@@ -17,9 +19,10 @@ export default function QuickActions() {
           gap: "15px",
         }}
       >
-        {actions.map((action) => (
-          <button
+        {actions.map((action, index) => (
+          <Link
             key={action}
+            href={hrefs[index]}
             style={{
               padding: "16px",
               borderRadius: "8px",
@@ -27,11 +30,13 @@ export default function QuickActions() {
               backgroundColor: "#334155",
               color: "white",
               fontSize: "15px",
-              cursor: "pointer",
-            }}
-          >
-            {action}
-          </button>
+            cursor: "pointer",
+            textDecoration: "none",
+            textAlign: "center",
+          }}
+        >
+          {action}
+          </Link>
         ))}
       </div>
     </DashboardPanel>
