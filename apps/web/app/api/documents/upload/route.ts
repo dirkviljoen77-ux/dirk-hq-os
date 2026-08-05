@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
-import { createDocument } from "@/lib/actions/document.actions";
 import { uploadToGoogleDrive } from "@/lib/google-drive";
+import { activityRepository } from "@/lib/repositories/activity.repository";
+import { documentRepository } from "@/lib/repositories/document.repository";
 
 export const runtime = "nodejs";
 
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     const driveFile = await uploadToGoogleDrive(file);
-    await createDocument({
+    const document = await documentRepository.create({
       name: typeof name === "string" && name.trim() ? name.trim() : file.name,
       fileName: file.name,
       fileType: file.type || "application/octet-stream",
@@ -30,6 +32,14 @@ export async function POST(request: Request) {
       driveFileId: driveFile.id,
       webViewLink: driveFile.webViewLink ?? `https://drive.google.com/open?id=${driveFile.id}`,
     });
+    await activityRepository.create({
+      type: "DOCUMENT_ADDED",
+      title: document.name,
+      description: "Document added",
+      projectId,
+    });
+    revalidatePath("/documents");
+    revalidatePath(`/projects/${projectId}`);
 
     return NextResponse.json({ ok: true });
   } catch (error) {
