@@ -6,6 +6,8 @@ export interface CreateDocumentInput {
   fileType: string;
   fileSize: number;
   description?: string;
+  driveFileId?: string;
+  webViewLink?: string;
   projectId: string;
 }
 export interface UpdateDocumentInput {
@@ -13,6 +15,19 @@ export interface UpdateDocumentInput {
   description?: string;
 }
 class DocumentRepository {
+  async findAll() {
+    return prisma.document.findMany({
+      include: {
+        project: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
   async findByProject(projectId: string) {
     return prisma.document.findMany({
       where: {
@@ -29,17 +44,14 @@ class DocumentRepository {
       data,
     });
   }
-async update(
-  id: string,
-  data: UpdateDocumentInput
-) {
-  return prisma.document.update({
-    where: {
-      id,
-    },
-    data,
-  });
-}
+  async update(id: string, data: UpdateDocumentInput) {
+    return prisma.document.update({
+      where: {
+        id,
+      },
+      data,
+    });
+  }
   async delete(id: string) {
     return prisma.document.delete({
       where: {
