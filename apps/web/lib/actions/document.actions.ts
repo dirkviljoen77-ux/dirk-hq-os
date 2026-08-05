@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { documentRepository } from "@/lib/repositories/document.repository";
-import { uploadToGoogleDrive } from "@/lib/google-drive";
+import { deleteFromGoogleDrive, uploadToGoogleDrive } from "@/lib/google-drive";
 import { logActivity } from "./activity.actions";
 
 export async function getDocuments(projectId: string) {
@@ -88,5 +88,14 @@ export async function updateDocument(
   return document;
 }
 export async function deleteDocument(id: string) {
-  return documentRepository.delete(id);
+  const document = await documentRepository.findById(id);
+  if (!document) throw new Error("Document not found.");
+
+  if (document.driveFileId) {
+    await deleteFromGoogleDrive(document.driveFileId);
+  }
+
+  await documentRepository.delete(id);
+  revalidatePath("/documents");
+  revalidatePath(`/projects/${document.projectId}`);
 }

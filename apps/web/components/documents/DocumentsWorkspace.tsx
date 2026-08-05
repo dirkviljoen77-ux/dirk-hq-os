@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useMemo, useState, useTransition } from "react";
-import { getAllDocuments, uploadDocument } from "@/lib/actions/document.actions";
+import { deleteDocument, getAllDocuments, uploadDocument } from "@/lib/actions/document.actions";
 
 type Project = { id: string; name: string };
 type Document = {
@@ -80,6 +80,19 @@ export default function DocumentsWorkspace({ documents: initialDocuments, projec
     });
   }
 
+  function handleDelete(document: Document) {
+    if (!window.confirm(`Delete “${document.name}” from Dirk HQ and Google Drive?`)) return;
+
+    startTransition(async () => {
+      try {
+        await deleteDocument(document.id);
+        setDocuments(await getAllDocuments());
+      } catch (deleteError) {
+        setError(deleteError instanceof Error ? deleteError.message : "Delete failed.");
+      }
+    });
+  }
+
   return (
     <section style={{ color: "#F8FAFC" }}>
       <div style={{ marginBottom: 24 }}>
@@ -124,7 +137,10 @@ export default function DocumentsWorkspace({ documents: initialDocuments, projec
                 <strong>{document.name}</strong>
                 <div style={{ marginTop: 4, overflow: "hidden", color: "#94A3B8", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{document.project.name} · {document.fileName} · {formatSize(document.fileSize)}</div>
               </div>
-              {driveLink ? <a href={driveLink} target="_blank" rel="noreferrer" style={{ color: "#93C5FD", whiteSpace: "nowrap" }}>Open in Drive</a> : <span style={{ color: "#94A3B8" }}>Unavailable</span>}
+              <div style={{ display: "flex", alignItems: "center", gap: 14, whiteSpace: "nowrap" }}>
+                {driveLink ? <a href={driveLink} target="_blank" rel="noreferrer" style={{ color: "#93C5FD" }}>Open in Drive</a> : <span style={{ color: "#94A3B8" }}>Unavailable</span>}
+                <button type="button" disabled={isPending} onClick={() => handleDelete(document)} style={{ border: 0, background: "transparent", color: "#FCA5A5", cursor: "pointer" }}>Delete</button>
+              </div>
             </div>
           );
         })}

@@ -51,3 +51,15 @@ export async function uploadToGoogleDrive(file: File) {
   if (!uploaded.id) throw new Error("Google Drive did not return a file ID.");
   return { id: uploaded.id, webViewLink: uploaded.webViewLink };
 }
+
+export async function deleteFromGoogleDrive(fileId: string) {
+  const { accessToken } = await getAccessToken();
+  const response = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}`,
+    { method: "DELETE", headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+
+  if (!response.ok && response.status !== 404) {
+    throw new Error("Google Drive could not delete this file.");
+  }
+}

@@ -15,6 +15,10 @@ export interface UpdateDocumentInput {
   description?: string;
 }
 class DocumentRepository {
+  async findById(id: string) {
+    return prisma.document.findUnique({ where: { id } });
+  }
+
   async findAll() {
     return prisma.document.findMany({
       include: {
