@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { scheduleMeetingReminder } from "@/lib/meeting-reminders";
 
 export async function POST(request: Request) {
   const subscription = await request.json() as PushSubscriptionJSON;
@@ -16,6 +17,29 @@ export async function POST(request: Request) {
     update: { p256dh, auth },
     create: { endpoint, p256dh, auth },
   });
+
+  const upcomingMeetings = await prisma.meeting.findMany({
+    where: {
+      status: "SCHEDULED",
+      meetingDate: { gt: new Date(Date.now() + 60 * 60_000) },
+    },
+    select: { id: true, meetingDate: true },
+  });
+
+  await Promise.all(
+    upcomingMeetings.map(async (meeting) => {
+      const existingReminder = await prisma.meetingReminder.findUnique({ where: { meetingId: meeting.id } });
+      if (existingReminder) return;
+
+      await prisma.meetingReminder.create({
+        data: {
+          meetingId: meeting.id,
+          scheduledFor: new Date(meeting.meetingDate.getTime() - 60 * 60_000),
+        },
+      });
+      await scheduleMeetingReminder(meeting);
+    })
+  );
 
   return NextResponse.json({ ok: true });
 }
