@@ -1,11 +1,15 @@
+import Link from "next/link";
+
 type CardProps = {
   title: string;
   value: string;
+  href: string;
 };
 
-export default function Card({ title, value }: CardProps) {
+export default function Card({ title, value, href }: CardProps) {
   return (
-    <div
+    <Link
+      href={href}
       style={{
         backgroundColor: "#1E293B",
         border: "1px solid #334155",
@@ -13,6 +17,9 @@ export default function Card({ title, value }: CardProps) {
         padding: "24px",
         minWidth: "180px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+        color: "inherit",
+        textDecoration: "none",
+        cursor: "pointer",
       }}
     >
       <h3
@@ -36,6 +43,6 @@ export default function Card({ title, value }: CardProps) {
       >
         {value}
       </p>
-    </div>
+    </Link>
   );
 }

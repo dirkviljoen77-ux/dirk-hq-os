@@ -1,7 +1,10 @@
 import AppShell from "../../components/layout/AppShell";
 import CalendarPanel from "../../components/projects/workspace/CalendarPanel";
 
-export default function CalendarPage() {
+type Props = { searchParams: Promise<{ date?: string }> };
+
+export default async function CalendarPage({ searchParams }: Props) {
+  const { date } = await searchParams;
   return (
     <AppShell>
       <div
@@ -18,7 +21,7 @@ export default function CalendarPage() {
           Executive Calendar
         </h1>
 
-        <CalendarPanel />
+        <CalendarPanel focusDate={date} />
       </div>
     </AppShell>
   );

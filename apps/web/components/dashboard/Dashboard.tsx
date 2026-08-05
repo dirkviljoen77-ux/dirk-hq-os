@@ -65,10 +65,10 @@ export default async function Dashboard() {
           gap: "20px",
         }}
       >
-        <Card title="Active Projects" value={dashboard.activeProjects.toString()} />
-        <Card title="Outstanding Tasks" value={dashboard.outstandingTasks.toString()} />
-        <Card title="Meetings Today" value={dashboard.meetingsToday.toString()} />
-        <Card title="Documents" value={dashboard.documents.toString()} />
+        <Card title="Active Projects" value={dashboard.activeProjects.toString()} href="/projects?status=active" />
+        <Card title="Outstanding Tasks" value={dashboard.outstandingTasks.toString()} href="/tasks?status=outstanding" />
+        <Card title="Meetings Today" value={dashboard.meetingsToday.toString()} href={`/calendar?date=${new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Harare" })}`} />
+        <Card title="Documents" value={dashboard.documents.toString()} href="/documents" />
       </div>
 
       <div

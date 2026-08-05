@@ -20,7 +20,9 @@ type CalendarEvent = {
   color: string;
 };
 
-export default function CalendarPanel() {
+type Props = { focusDate?: string };
+
+export default function CalendarPanel({ focusDate }: Props) {
   const router = useRouter();
 
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -63,23 +65,25 @@ export default function CalendarPanel() {
     >
       <NotificationSetup />
       <FullCalendar
-        key={isMobile ? "mobile" : "desktop"}
+        key={`${isMobile ? "mobile" : "desktop"}-${focusDate ?? "default"}`}
         plugins={[
           dayGridPlugin,
           timeGridPlugin,
           interactionPlugin,
           listPlugin,
         ]}
-        initialView={isMobile ? "listWeek" : "dayGridMonth"}
+        initialView={isMobile ? (focusDate ? "listDay" : "listWeek") : (focusDate ? "timeGridDay" : "dayGridMonth")}
+        initialDate={focusDate}
         headerToolbar={{
           left: "prev,next today",
           center: "title",
-          right: isMobile ? "listWeek" : "dayGridMonth,timeGridWeek",
+          right: isMobile ? "listWeek,listDay" : "dayGridMonth,timeGridWeek,timeGridDay",
         }}
         buttonText={{
           today: "Today",
           month: "Month",
           week: "Week",
+          day: "Day",
           list: "Agenda",
         }}
         weekends={true}

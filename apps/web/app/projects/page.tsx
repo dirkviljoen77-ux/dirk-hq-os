@@ -4,10 +4,16 @@ import AppShell from "../../components/layout/AppShell";
 import ProjectGrid from "../../components/projects/ProjectGrid";
 import { getProjects } from "@/lib/actions/project.actions";
 import Link from "next/link";
-export default async function ProjectsPage() {
-  const projects = await getProjects();
+type Props = { searchParams: Promise<{ status?: string }> };
 
-  const mappedProjects = projects.map((project: any) => ({
+export default async function ProjectsPage({ searchParams }: Props) {
+  const projects = await getProjects();
+  const { status } = await searchParams;
+  const visibleProjects = status === "active"
+    ? projects.filter((project) => project.status.toLowerCase() === "active")
+    : projects;
+
+  const mappedProjects = visibleProjects.map((project: any) => ({
     id: project.id,
     name: project.name,
     status: project.status,
@@ -43,7 +49,7 @@ export default async function ProjectsPage() {
               marginTop: 8,
             }}
           >
-            Executive Project Portfolio
+            {status === "active" ? "Active projects" : "Executive Project Portfolio"}
           </p>
         </div>
 
