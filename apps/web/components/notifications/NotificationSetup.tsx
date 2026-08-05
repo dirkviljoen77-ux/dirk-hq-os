@@ -33,7 +33,8 @@ export default function NotificationSetup() {
         return;
       }
 
-      const registration = await navigator.serviceWorker.register("/notifications-sw.js");
+      await navigator.serviceWorker.register("/notifications-sw.js");
+      const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: toUint8Array(publicKey),
