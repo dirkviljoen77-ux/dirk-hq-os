@@ -7,6 +7,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import listPlugin from "@fullcalendar/list";
 import type { EventClickArg } from "@fullcalendar/core";
 
 import { getCalendar } from "@/lib/actions/calendar.actions";
@@ -23,6 +24,7 @@ export default function CalendarPanel() {
   const router = useRouter();
 
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -31,6 +33,14 @@ export default function CalendarPanel() {
     }
 
     load();
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const updateView = () => setIsMobile(media.matches);
+    updateView();
+    media.addEventListener("change", updateView);
+    return () => media.removeEventListener("change", updateView);
   }, []);
 
   function handleDateClick(info: any) {
@@ -53,21 +63,24 @@ export default function CalendarPanel() {
     >
       <NotificationSetup />
       <FullCalendar
+        key={isMobile ? "mobile" : "desktop"}
         plugins={[
           dayGridPlugin,
           timeGridPlugin,
           interactionPlugin,
+          listPlugin,
         ]}
-        initialView="dayGridMonth"
+        initialView={isMobile ? "listWeek" : "dayGridMonth"}
         headerToolbar={{
           left: "prev,next today",
           center: "title",
-          right: "dayGridMonth,timeGridWeek",
+          right: isMobile ? "listWeek" : "dayGridMonth,timeGridWeek",
         }}
         buttonText={{
           today: "Today",
           month: "Month",
           week: "Week",
+          list: "Agenda",
         }}
         weekends={true}
         editable={false}
@@ -75,10 +88,21 @@ export default function CalendarPanel() {
         selectMirror={true}
         dayMaxEvents={3}
         height="auto"
+        eventTimeFormat={{ hour: "numeric", minute: "2-digit", meridiem: "short" }}
         events={events}
         dateClick={handleDateClick}
         eventClick={handleEventClick}
       />
+      <style jsx global>{`
+        @media (max-width: 767px) {
+          .fc .fc-toolbar { align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+          .fc .fc-toolbar-title { font-size: 20px; }
+          .fc .fc-list-day-cushion { background: #0F172A; color: #F8FAFC; padding: 14px 12px; }
+          .fc .fc-list-event td { padding: 13px 10px; }
+          .fc .fc-list-event-title a { color: #F8FAFC; font-size: 16px; white-space: normal; }
+          .fc .fc-list-event-time { color: #93C5FD; font-weight: 600; white-space: nowrap; }
+        }
+      `}</style>
     </div>
   );
 }
