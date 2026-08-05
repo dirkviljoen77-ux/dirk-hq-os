@@ -17,7 +17,10 @@ export async function createProject(data: {
   name: string;
   description?: string;
 }) {
-  return projectRepository.create(data);
+  const project = await projectRepository.create(data);
+  revalidatePath("/");
+  revalidatePath("/projects");
+  return project;
 }
 
 export async function updateProject(
@@ -28,7 +31,11 @@ export async function updateProject(
     status?: string;
   }
 ) {
-  return projectRepository.update(id, data);
+  const project = await projectRepository.update(id, data);
+  revalidatePath("/");
+  revalidatePath("/projects");
+  revalidatePath(`/projects/${id}`);
+  return project;
 }
 
 export async function deleteProject(id: string) {
@@ -44,6 +51,7 @@ export async function deleteProject(id: string) {
   }
 
   await projectRepository.delete(id);
+  revalidatePath("/");
   revalidatePath("/projects");
   revalidatePath("/documents");
 }
