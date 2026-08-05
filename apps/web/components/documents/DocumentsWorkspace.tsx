@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useMemo, useState, useTransition } from "react";
-import { deleteDocument, getAllDocuments, uploadDocument } from "@/lib/actions/document.actions";
+import { deleteDocument, getAllDocuments } from "@/lib/actions/document.actions";
 
 type Project = { id: string; name: string };
 type Document = {
@@ -68,9 +68,13 @@ export default function DocumentsWorkspace({ documents: initialDocuments, projec
 
     startTransition(async () => {
       try {
-        const result = await uploadDocument(formData);
-        if ("error" in result) {
-          setError(result.error);
+        const response = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const result = await response.json() as { error?: string };
+        if (!response.ok) {
+          setError(result.error ?? "Google Drive upload failed.");
           return;
         }
         setDocuments(await getAllDocuments());
