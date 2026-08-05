@@ -39,19 +39,24 @@ export async function updateProject(
 }
 
 export async function deleteProject(id: string) {
-  const project = await projectRepository.findById(id);
-  if (!project) throw new Error("Project not found.");
+  try {
+    const project = await projectRepository.findById(id);
+    if (!project) return { error: "Project not found." };
 
-  const documents = await prisma.document.findMany({
-    where: { projectId: id, driveFileId: { not: null } },
-    select: { driveFileId: true },
-  });
-  for (const document of documents) {
-    if (document.driveFileId) await deleteFromGoogleDrive(document.driveFileId);
+    const documents = await prisma.document.findMany({
+      where: { projectId: id, driveFileId: { not: null } },
+      select: { driveFileId: true },
+    });
+    for (const document of documents) {
+      if (document.driveFileId) await deleteFromGoogleDrive(document.driveFileId);
+    }
+
+    await projectRepository.delete(id);
+    revalidatePath("/");
+    revalidatePath("/projects");
+    revalidatePath("/documents");
+    return { ok: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Unable to delete this project." };
   }
-
-  await projectRepository.delete(id);
-  revalidatePath("/");
-  revalidatePath("/projects");
-  revalidatePath("/documents");
 }

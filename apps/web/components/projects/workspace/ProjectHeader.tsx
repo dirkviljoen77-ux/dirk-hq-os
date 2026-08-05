@@ -22,7 +22,8 @@ export default function ProjectHeader({ project }: Props) {
 
     startTransition(async () => {
       try {
-        await deleteProject(project.id);
+        const result = await deleteProject(project.id);
+        if ("error" in result) throw new Error(result.error);
         router.push("/projects");
         router.refresh();
       } catch (error) {
