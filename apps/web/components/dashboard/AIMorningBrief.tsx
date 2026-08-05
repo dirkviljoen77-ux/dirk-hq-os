@@ -14,7 +14,7 @@ export default function AIMorningBrief({ activeProjects, outstandingTasks, nextM
       >
         <li>{activeProjects} active project{activeProjects === 1 ? "" : "s"}.</li>
         <li>{outstandingTasks} outstanding task{outstandingTasks === 1 ? "" : "s"}.</li>
-        {nextMeeting ? <li>Next meeting: {nextMeeting.title} at {new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(nextMeeting.meetingDate)}.</li> : <li>No upcoming meetings.</li>}
+        {nextMeeting ? <li>Next meeting: {nextMeeting.title} at {new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Harare" }).format(nextMeeting.meetingDate)}.</li> : <li>No upcoming meetings.</li>}
       </ul>
     </DashboardPanel>
   );
