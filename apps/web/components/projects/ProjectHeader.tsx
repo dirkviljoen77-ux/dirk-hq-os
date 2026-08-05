@@ -33,14 +33,6 @@ export default function ProjectHeader({
         {project.name}
       </h1>
 
-      <p
-        style={{
-          margin: 0,
-          color: theme.colors.textSecondary,
-        }}
-      >
-        Status: {project.status}
-      </p>
     </header>
   );
 }

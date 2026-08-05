@@ -34,7 +34,6 @@ export default async function ProjectPage({
   const project = {
     id: dbProject.id,
     name: dbProject.name,
-    status: dbProject.status,
     progress: 0,
     owner: "Dirk Viljoen",
     due: "-",

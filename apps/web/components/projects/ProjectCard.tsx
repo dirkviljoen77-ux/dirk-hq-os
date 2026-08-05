@@ -36,15 +36,6 @@ export default function ProjectCard({ project }: Props) {
 
         <div
           style={{
-            color: "#CBD5E1",
-            marginBottom: 10,
-          }}
-        >
-          {project.status}
-        </div>
-
-        <div
-          style={{
             color: "#94A3B8",
             marginBottom: 8,
           }}

@@ -9,8 +9,8 @@ class DashboardRepository {
     const todayStart = new Date(`${harareDate}T00:00:00+02:00`);
     const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
-    const [activeProjects, outstandingTasks, meetingsToday, documents, recentProjects, priorities, upcomingMeetings] = await Promise.all([
-      prisma.project.count({ where: { status: { not: "Completed" } } }),
+    const [projectCount, outstandingTasks, meetingsToday, documents, recentProjects, priorities, upcomingMeetings] = await Promise.all([
+      prisma.project.count(),
       prisma.task.count({ where: { status: { not: "COMPLETE" } } }),
       prisma.meeting.count({ where: { meetingDate: { gte: todayStart, lt: tomorrowStart }, status: { not: "CANCELLED" } } }),
       prisma.document.count(),
@@ -33,7 +33,7 @@ class DashboardRepository {
       }),
     ]);
 
-    return { activeProjects, outstandingTasks, meetingsToday, documents, recentProjects, priorities, upcomingMeetings };
+    return { projectCount, outstandingTasks, meetingsToday, documents, recentProjects, priorities, upcomingMeetings };
   }
 
   async getSummary() {

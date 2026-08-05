@@ -54,7 +54,6 @@ export default function ProjectWorkspace({
             projectName={project.name}
             owner={project.owner}
             progress={project.progress}
-            status={project.status}
           />
         )}
 

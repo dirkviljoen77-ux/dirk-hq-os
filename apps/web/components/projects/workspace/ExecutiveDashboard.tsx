@@ -5,7 +5,6 @@ type Props = {
   projectName: string;
   owner: string;
   progress: number;
-  status: string;
 };
 
 export default function ExecutiveDashboard({
@@ -13,7 +12,6 @@ export default function ExecutiveDashboard({
   projectName,
   owner,
   progress,
-  status,
 }: Props) {
   return (
     <>
@@ -27,10 +25,6 @@ export default function ExecutiveDashboard({
 
       <p>
         <strong>Owner:</strong> {owner}
-      </p>
-
-      <p>
-        <strong>Status:</strong> {status}
       </p>
 
       <p>

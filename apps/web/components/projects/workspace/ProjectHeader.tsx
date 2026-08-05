@@ -52,15 +52,6 @@ export default function ProjectHeader({ project }: Props) {
           {project.name}
         </h1>
 
-        <div
-          style={{
-            color: "#CBD5E1",
-            marginTop: 8,
-            fontSize: 18,
-          }}
-        >
-          {project.status}
-        </div>
       </div>
 
       <div

@@ -65,7 +65,7 @@ export default async function Dashboard() {
           gap: "20px",
         }}
       >
-        <Card title="Active Projects" value={dashboard.activeProjects.toString()} href="/projects?status=active" />
+        <Card title="Projects" value={dashboard.projectCount.toString()} href="/projects" />
         <Card title="Outstanding Tasks" value={dashboard.outstandingTasks.toString()} href="/tasks?status=outstanding" />
         <Card title="Meetings Today" value={dashboard.meetingsToday.toString()} href={`/calendar?date=${new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Harare" })}`} />
         <Card title="Documents" value={dashboard.documents.toString()} href="/documents" />
@@ -88,7 +88,7 @@ export default async function Dashboard() {
   </div>
 
   <div style={{ flex: 1 }}>
-    <AIMorningBrief activeProjects={dashboard.activeProjects} outstandingTasks={dashboard.outstandingTasks} nextMeeting={dashboard.upcomingMeetings[0]} />
+    <AIMorningBrief projectCount={dashboard.projectCount} outstandingTasks={dashboard.outstandingTasks} nextMeeting={dashboard.upcomingMeetings[0]} />
   </div>
 </div>
 

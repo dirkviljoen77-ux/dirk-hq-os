@@ -1,6 +1,6 @@
 import DashboardPanel from "./DashboardPanel";
 
-type Props = { projects: { id: string; name: string; status: string }[] };
+type Props = { projects: { id: string; name: string }[] };
 
 export default function RecentProjects({ projects }: Props) {
   return (
@@ -17,14 +17,6 @@ export default function RecentProjects({ projects }: Props) {
         >
           <span>{project.name}</span>
 
-          <span
-            style={{
-              color: "#94a3b8",
-              fontSize: "14px",
-            }}
-          >
-            {project.status}
-          </span>
         </div>
       ))}
     </DashboardPanel>
