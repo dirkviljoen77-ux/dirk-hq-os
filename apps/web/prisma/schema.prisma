@@ -80,6 +80,25 @@ model Meeting {
   location    String?
   status      MeetingStatus @default(SCHEDULED)
   project     Project?       @relation(fields: [projectId], references: [id])
+  reminders   MeetingReminder[]
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MeetingReminder {
+  id           String   @id @default(uuid())
+  meetingId    String   @unique
+  scheduledFor DateTime
+  sentAt       DateTime?
+  createdAt    DateTime @default(now())
+  meeting      Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
 }
 
 model Document {

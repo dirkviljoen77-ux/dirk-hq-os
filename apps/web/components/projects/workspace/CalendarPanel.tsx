@@ -10,6 +10,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import type { EventClickArg } from "@fullcalendar/core";
 
 import { getCalendar } from "@/lib/actions/calendar.actions";
+import NotificationSetup from "@/components/notifications/NotificationSetup";
 
 type CalendarEvent = {
   id: string;
@@ -50,6 +51,7 @@ export default function CalendarPanel() {
         padding: 20,
       }}
     >
+      <NotificationSetup />
       <FullCalendar
         plugins={[
           dayGridPlugin,

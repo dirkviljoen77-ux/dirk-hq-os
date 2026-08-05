@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { meetingRepository } from "@/lib/repositories/meeting.repository";
+import { scheduleMeetingReminder } from "@/lib/meeting-reminders";
+import { prisma } from "@/lib/prisma";
 import { logActivity } from "./activity.actions";
 
 export async function getMeetings(projectId: string) {
@@ -20,6 +22,16 @@ export async function createMeeting(data: {
   projectId?: string;
 }) {
   const meeting = await meetingRepository.create(data);
+
+  const scheduledFor = new Date(meeting.meetingDate.getTime() - 60 * 60_000);
+  if (scheduledFor > new Date()) {
+    await prisma.meetingReminder.upsert({
+      where: { meetingId: meeting.id },
+      update: { scheduledFor, sentAt: null },
+      create: { meetingId: meeting.id, scheduledFor },
+    });
+    await scheduleMeetingReminder(meeting);
+  }
 
   if (data.projectId) {
     await logActivity({
