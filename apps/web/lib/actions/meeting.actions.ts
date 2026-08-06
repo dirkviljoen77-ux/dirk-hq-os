@@ -39,7 +39,11 @@ export async function createMeeting(data: {
       update: { scheduledFor, sentAt: null },
       create: { meetingId: meeting.id, scheduledFor },
     });
-    await scheduleMeetingReminder(meeting);
+    try {
+      await scheduleMeetingReminder(meeting);
+    } catch {
+      // A reminder scheduling problem must never prevent a meeting from being saved.
+    }
   }
 
   if (data.projectId) {
