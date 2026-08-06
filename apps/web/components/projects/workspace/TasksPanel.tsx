@@ -6,6 +6,7 @@ import {
   getTasks,
   completeTask,
   deleteTask,
+  scheduleTask,
 } from "@/lib/actions/task.actions";
 
 type Props = {
@@ -20,6 +21,8 @@ type Task = {
   dueDate?: Date | null;
   priority?: number;
   status: string;
+  scheduledAt?: Date | null;
+  durationMinutes?: number;
 };
 
 export default function TasksPanel({
@@ -30,6 +33,8 @@ export default function TasksPanel({
   const [newTask, setNewTask] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [priority, setPriority] = useState(2);
+  const [scheduleValues, setScheduleValues] = useState<Record<string, string>>({});
+  const [durationValues, setDurationValues] = useState<Record<string, number>>({});
 
   const [, startTransition] = useTransition();
 
@@ -75,6 +80,29 @@ export default function TasksPanel({
       await deleteTask(id);
       await loadTasks();
     });
+  }
+
+  async function handleSchedule(task: Task) {
+    const value = scheduleValues[task.id];
+    if (!value) return;
+
+    startTransition(async () => {
+      await scheduleTask(task.id, new Date(value), durationValues[task.id] ?? task.durationMinutes ?? 60);
+      await loadTasks();
+    });
+  }
+
+  function toDateTimeInput(value?: Date | null) {
+    if (!value) return "";
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Africa/Harare",
+        year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+      }).formatToParts(new Date(value))
+        .filter((part) => part.type !== "literal")
+        .map((part) => [part.type, part.value]),
+    );
+    return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
   }
 
   return (
@@ -195,6 +223,31 @@ export default function TasksPanel({
                 ).toLocaleDateString()}
               </div>
             )}
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginTop: 10, marginLeft: 28 }}>
+              <input
+                type="datetime-local"
+                aria-label={`Schedule ${task.title}`}
+                value={scheduleValues[task.id] ?? toDateTimeInput(task.scheduledAt)}
+                onChange={(event) => setScheduleValues((current) => ({ ...current, [task.id]: event.target.value }))}
+                style={{ padding: 8, borderRadius: 6, border: "1px solid #475569", background: "#0F172A", color: "white" }}
+              />
+              <select
+                aria-label={`Duration for ${task.title}`}
+                value={durationValues[task.id] ?? task.durationMinutes ?? 60}
+                onChange={(event) => setDurationValues((current) => ({ ...current, [task.id]: Number(event.target.value) }))}
+                style={{ padding: 8, borderRadius: 6, border: "1px solid #475569", background: "#0F172A", color: "white" }}
+              >
+                <option value={15}>15 min</option>
+                <option value={30}>30 min</option>
+                <option value={45}>45 min</option>
+                <option value={60}>1 hour</option>
+                <option value={90}>1½ hours</option>
+                <option value={120}>2 hours</option>
+                <option value={180}>3 hours</option>
+              </select>
+              <button onClick={() => handleSchedule(task)} style={{ padding: "8px 10px", border: 0, borderRadius: 6, background: "#334155", color: "white", cursor: "pointer" }}>Time-block</button>
+            </div>
           </div>
 
           <button

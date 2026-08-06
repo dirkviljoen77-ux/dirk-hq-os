@@ -5,6 +5,8 @@ export interface CreateTaskInput {
   description?: string;
   priority?: number;
   dueDate?: Date;
+  scheduledAt?: Date;
+  durationMinutes?: number;
   projectId: string;
 }
 
@@ -14,6 +16,8 @@ export interface UpdateTaskInput {
   status?: "TODO" | "IN_PROGRESS" | "REVIEW" | "COMPLETE";
   priority?: number;
   dueDate?: Date;
+  scheduledAt?: Date | null;
+  durationMinutes?: number;
 }
 
 class TaskRepository {

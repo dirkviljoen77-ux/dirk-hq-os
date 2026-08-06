@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Task"
+ADD COLUMN "scheduledAt" TIMESTAMP(3),
+ADD COLUMN "durationMinutes" INTEGER NOT NULL DEFAULT 60;

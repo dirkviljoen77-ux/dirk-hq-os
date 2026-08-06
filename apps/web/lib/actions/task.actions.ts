@@ -13,6 +13,8 @@ export async function createTask(data: {
   description?: string;
   priority?: number;
   dueDate?: Date;
+  scheduledAt?: Date;
+  durationMinutes?: number;
   projectId: string;
 }) {
   const task = await taskRepository.create(data);
@@ -45,6 +47,20 @@ export async function completeTask(id: string) {
   revalidatePath("/tasks");
   revalidatePath(`/projects/${task.projectId}`);
 
+  return task;
+}
+
+export async function scheduleTask(id: string, scheduledAt: Date, durationMinutes = 60) {
+  if (Number.isNaN(scheduledAt.getTime())) throw new Error("Choose a valid date and time.");
+  if (!Number.isInteger(durationMinutes) || durationMinutes < 15 || durationMinutes > 480) {
+    throw new Error("Choose a duration between 15 minutes and 8 hours.");
+  }
+
+  const task = await taskRepository.update(id, { scheduledAt, durationMinutes });
+  revalidatePath("/");
+  revalidatePath("/calendar");
+  revalidatePath("/tasks");
+  revalidatePath(`/projects/${task.projectId}`);
   return task;
 }
 

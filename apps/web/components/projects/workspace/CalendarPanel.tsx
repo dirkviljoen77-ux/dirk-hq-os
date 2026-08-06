@@ -8,9 +8,10 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
-import type { EventClickArg } from "@fullcalendar/core";
+import type { EventClickArg, EventDropArg } from "@fullcalendar/core";
 
 import { getCalendar } from "@/lib/actions/calendar.actions";
+import { scheduleTask } from "@/lib/actions/task.actions";
 import NotificationSetup from "@/components/notifications/NotificationSetup";
 
 type CalendarEvent = {
@@ -28,13 +29,13 @@ export default function CalendarPanel({ focusDate }: Props) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      const data = await getCalendar();
-      setEvents(data);
-    }
+  async function loadCalendar() {
+    const data = await getCalendar();
+    setEvents(data);
+  }
 
-    load();
+  useEffect(() => {
+    loadCalendar();
   }, []);
 
   useEffect(() => {
@@ -52,8 +53,25 @@ export default function CalendarPanel({ focusDate }: Props) {
 }
 
   function handleEventClick(info: EventClickArg) {
-  router.push(`/meetings/${info.event.id}`);
-}
+    const kind = info.event.extendedProps.kind;
+    if (kind === "meeting") router.push(`/meetings/${info.event.id}`);
+    if (kind === "task" || kind === "milestone") router.push(`/projects/${info.event.extendedProps.projectId}`);
+  }
+
+  function handleEventDrop(info: EventDropArg) {
+    if (info.event.extendedProps.kind !== "task" || !info.event.start) {
+      info.revert();
+      return;
+    }
+
+    const durationMinutes = info.event.end
+      ? Math.max(15, Math.round((info.event.end.getTime() - info.event.start.getTime()) / 60_000))
+      : 60;
+
+    scheduleTask(info.event.id, info.event.start, durationMinutes)
+      .then(loadCalendar)
+      .catch(() => info.revert());
+  }
 
   return (
     <div
@@ -87,7 +105,8 @@ export default function CalendarPanel({ focusDate }: Props) {
           list: "Agenda",
         }}
         weekends={true}
-        editable={false}
+        editable={true}
+        eventAllow={(_dropInfo, draggedEvent) => draggedEvent?.extendedProps.kind === "task"}
         selectable={true}
         selectMirror={true}
         dayMaxEvents={3}
@@ -96,6 +115,7 @@ export default function CalendarPanel({ focusDate }: Props) {
         events={events}
         dateClick={handleDateClick}
         eventClick={handleEventClick}
+        eventDrop={handleEventDrop}
       />
       <style jsx global>{`
         @media (max-width: 767px) {
