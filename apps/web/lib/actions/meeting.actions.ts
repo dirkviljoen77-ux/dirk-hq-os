@@ -5,6 +5,7 @@ import { meetingRepository } from "@/lib/repositories/meeting.repository";
 import { scheduleMeetingReminder } from "@/lib/meeting-reminders";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "./activity.actions";
+import { createGoogleCalendarEvent, deleteGoogleCalendarEvent, updateGoogleCalendarEvent } from "@/lib/google-drive";
 
 export async function getMeetings(projectId: string) {
   return meetingRepository.findByProject(projectId);
@@ -22,6 +23,14 @@ export async function createMeeting(data: {
   projectId?: string;
 }) {
   const meeting = await meetingRepository.create(data);
+
+  try {
+    const googleEventId = await createGoogleCalendarEvent(meeting);
+    await meetingRepository.update(meeting.id, { googleEventId });
+    meeting.googleEventId = googleEventId;
+  } catch {
+    // Dirk HQ remains usable if Google Calendar has not yet been reconnected with edit permission.
+  }
 
   const scheduledFor = new Date(meeting.meetingDate.getTime() - 60 * 60_000);
   if (scheduledFor > new Date()) {
@@ -66,6 +75,17 @@ export async function updateMeeting(
 ) {
   const meeting = await meetingRepository.update(id, data);
 
+  try {
+    if (meeting.googleEventId) {
+      await updateGoogleCalendarEvent(meeting.googleEventId, meeting);
+    } else {
+      const googleEventId = await createGoogleCalendarEvent(meeting);
+      await meetingRepository.update(meeting.id, { googleEventId });
+    }
+  } catch {
+    // Preserve the Dirk HQ update when Google Calendar is unavailable.
+  }
+
   revalidatePath("/calendar");
   revalidatePath("/meetings");
 
@@ -86,6 +106,14 @@ export async function deleteMeeting(id: string) {
       description: "Meeting deleted",
       projectId: meeting.projectId ?? undefined,
     });
+  }
+
+  if (meeting?.googleEventId) {
+    try {
+      await deleteGoogleCalendarEvent(meeting.googleEventId);
+    } catch {
+      // Preserve the Dirk HQ deletion when Google Calendar is unavailable.
+    }
   }
 
   await meetingRepository.delete(id);

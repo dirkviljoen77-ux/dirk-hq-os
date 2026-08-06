@@ -102,6 +102,7 @@ model Meeting {
   description String?
   location    String?
   status      MeetingStatus @default(SCHEDULED)
+  googleEventId String?      @unique
   project     Project?       @relation(fields: [projectId], references: [id])
   reminders   MeetingReminder[]
 }

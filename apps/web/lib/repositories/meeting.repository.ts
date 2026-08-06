@@ -5,6 +5,7 @@ export interface CreateMeetingInput {
   description?: string;
   meetingDate: Date;
   location?: string;
+  googleEventId?: string | null;
   projectId?: string;
 }
 
@@ -13,6 +14,7 @@ export interface UpdateMeetingInput {
   description?: string;
  meetingDate?: Date;
   location?: string;
+  googleEventId?: string | null;
   status?:
     | "SCHEDULED"
     | "IN_PROGRESS"

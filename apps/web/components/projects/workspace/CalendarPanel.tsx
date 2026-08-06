@@ -89,7 +89,11 @@ export default function CalendarPanel({ focusDate }: Props) {
           Connect Google Calendar
         </a>
       )}
-      {googleCalendarConnected && <p style={{ margin: "0 0 16px", color: "#C4B5FD", fontSize: 14 }}>Google Calendar events are shown in purple.</p>}
+      {googleCalendarConnected && (
+        <p style={{ margin: "0 0 16px", color: "#C4B5FD", fontSize: 14 }}>
+          Google Calendar events are shown in purple. <a href="/api/google-calendar/connect" style={{ color: "#DDD6FE" }}>Upgrade Google Calendar access</a>
+        </p>
+      )}
       <FullCalendar
         key={`${isMobile ? "mobile" : "desktop"}-${focusDate ?? "default"}`}
         plugins={[

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
-const CALENDAR_READ_SCOPE = "https://www.googleapis.com/auth/calendar.events.readonly";
+const CALENDAR_EVENTS_SCOPE = "https://www.googleapis.com/auth/calendar.events";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 
 function getOAuthCredentials() {
@@ -21,7 +21,7 @@ function getOAuthConfig() {
 export function getGoogleDriveAuthorizationUrl(state: string) {
   const { clientId, redirectUri } = getOAuthConfig();
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-  url.search = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: "code", scope: `${DRIVE_SCOPE} ${CALENDAR_READ_SCOPE}`, access_type: "offline", prompt: "consent", state }).toString();
+  url.search = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: "code", scope: `${DRIVE_SCOPE} ${CALENDAR_EVENTS_SCOPE}`, access_type: "offline", prompt: "consent", state }).toString();
   return url.toString();
 }
 
@@ -88,6 +88,53 @@ export async function getGoogleCalendarEvents(timeMin: Date, timeMax: Date) {
   } catch {
     return { connected: false, events: [] };
   }
+}
+
+type SyncableMeeting = { title: string; description?: string | null; location?: string | null; meetingDate: Date };
+
+function googleMeetingPayload(meeting: SyncableMeeting) {
+  const start = new Date(meeting.meetingDate);
+  const end = new Date(start.getTime() + 60 * 60_000);
+  return {
+    summary: meeting.title,
+    description: meeting.description ?? undefined,
+    location: meeting.location ?? undefined,
+    start: { dateTime: start.toISOString(), timeZone: "Africa/Harare" },
+    end: { dateTime: end.toISOString(), timeZone: "Africa/Harare" },
+  };
+}
+
+export async function createGoogleCalendarEvent(meeting: SyncableMeeting) {
+  const { accessToken } = await getAccessToken();
+  const response = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(googleMeetingPayload(meeting)),
+  });
+  if (!response.ok) throw new Error(`Google Calendar could not create the meeting: ${await response.text()}`);
+  const event = await response.json() as { id?: string };
+  if (!event.id) throw new Error("Google Calendar did not return an event ID.");
+  return event.id;
+}
+
+export async function updateGoogleCalendarEvent(eventId: string, meeting: SyncableMeeting) {
+  const { accessToken } = await getAccessToken();
+  const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(eventId)}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(googleMeetingPayload(meeting)),
+  });
+  if (!response.ok && response.status !== 404) throw new Error("Google Calendar could not update the meeting.");
+  return response.status !== 404;
+}
+
+export async function deleteGoogleCalendarEvent(eventId: string) {
+  const { accessToken } = await getAccessToken();
+  const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(eventId)}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!response.ok && response.status !== 404) throw new Error("Google Calendar could not delete the meeting.");
 }
 
 export async function uploadToGoogleDrive(file: File) {
