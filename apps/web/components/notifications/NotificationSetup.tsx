@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { sendTestMeetingAlert } from "@/lib/actions/notification.actions";
 
 const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -65,11 +66,22 @@ export default function NotificationSetup() {
     }
   }
 
+  async function sendTest() {
+    setPending(true);
+    try {
+      const result = await sendTestMeetingAlert();
+      setMessage(result.error ?? "Test alert sent. Check your browser notifications.");
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
       <button type="button" onClick={enable} disabled={pending} style={{ padding: "10px 14px", border: 0, borderRadius: 8, background: "#2563EB", color: "white", cursor: "pointer" }}>
         {pending ? "Saving…" : enabled ? "Meeting alerts enabled" : "Enable meeting alerts"}
       </button>
+      {enabled && <button type="button" onClick={sendTest} disabled={pending} style={{ padding: "10px 14px", border: "1px solid #475569", borderRadius: 8, background: "transparent", color: "#F8FAFC", cursor: "pointer" }}>Send test alert</button>}
       {message && <span style={{ color: "#CBD5E1", fontSize: 14 }}>{message}</span>}
     </div>
   );
