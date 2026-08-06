@@ -45,7 +45,18 @@ export async function generateDailyPlanBrief() {
       max_output_tokens: 700,
     });
     return { brief: response.output_text || "No daily brief was returned." };
-  } catch {
-    return { error: "AI could not generate a plan right now. Please try again." };
+  } catch (error) {
+    console.error("Daily plan AI request failed", error);
+
+    if (error instanceof OpenAI.AuthenticationError) {
+      return { error: "OpenAI rejected the API key. Check OPENAI_API_KEY in Vercel, then redeploy." };
+    }
+    if (error instanceof OpenAI.RateLimitError) {
+      return { error: "OpenAI has no available API quota. Check billing and usage limits in your OpenAI API project." };
+    }
+    if (error instanceof OpenAI.APIError && error.status === 404) {
+      return { error: "The configured AI model is not available to this API project. Check the project’s model access." };
+    }
+    return { error: "AI could not generate a plan. Check the Vercel Function Logs for the recorded request error." };
   }
 }
