@@ -5,11 +5,12 @@ export default function QuickActions() {
   const actions = [
     "New Project",
     "New Meeting",
+    "Plan Today",
     "Capture to Inbox",
     "Calendar",
     "Open Documents",
   ];
-  const hrefs = ["/projects/new", "/meetings/new", "/inbox", "/calendar", "/documents"];
+  const hrefs = ["/projects/new", "/meetings/new", "/plan", "/inbox", "/calendar", "/documents"];
 
   return (
     <DashboardPanel title="Quick Actions">

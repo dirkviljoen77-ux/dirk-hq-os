@@ -68,6 +68,27 @@ model Task {
   priority    Int        @default(3)
   status      TaskStatus @default(TODO)
   project     Project    @relation(fields: [projectId], references: [id])
+  dailyPlanItems DailyPlanItem[]
+}
+
+model DailyPlan {
+  id        String          @id @default(uuid())
+  planDate  DateTime        @unique
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  items     DailyPlanItem[]
+}
+
+model DailyPlanItem {
+  id          String    @id @default(uuid())
+  position    Int       @default(0)
+  dailyPlanId String
+  taskId      String
+  dailyPlan   DailyPlan @relation(fields: [dailyPlanId], references: [id], onDelete: Cascade)
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([dailyPlanId, taskId])
+  @@index([dailyPlanId, position])
 }
 
 model Meeting {
