@@ -14,6 +14,7 @@ const menu = [
   { label: "Dashboard", href: "/" },
   { label: "Projects", href: "/projects" },
   { label: "Calendar", href: "/calendar" },
+  { label: "Inbox", href: "/inbox" },
   { label: "Documents", href: "/documents" },
   { label: "Settings", href: "/settings" },
 ];
