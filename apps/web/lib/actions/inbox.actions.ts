@@ -12,7 +12,7 @@ function refreshInbox() {
   revalidatePath("/");
 }
 
-export function getInboxItems() {
+export async function getInboxItems() {
   return inboxRepository.findAll();
 }
 
