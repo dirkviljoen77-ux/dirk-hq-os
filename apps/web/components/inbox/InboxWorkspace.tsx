@@ -41,8 +41,14 @@ export default function InboxWorkspace({ items: initialItems, projects }: Props)
   function convert(id: string, kind: "task" | "note" | "meeting") {
     startTransition(async () => {
       try {
-        if (kind === "task") await turnInboxIntoTask(id, projectIds[id] ?? "");
-        if (kind === "note") await turnInboxIntoNote(id, projectIds[id] ?? "");
+        if (kind === "task") {
+          const result = await turnInboxIntoTask(id, projectIds[id] ?? "");
+          if (result.error) throw new Error(result.error);
+        }
+        if (kind === "note") {
+          const result = await turnInboxIntoNote(id, projectIds[id] ?? "");
+          if (result.error) throw new Error(result.error);
+        }
         if (kind === "meeting") await turnInboxIntoMeeting(id, new Date(meetingTimes[id] ?? ""));
         remove(id);
         setMessage(`Inbox item turned into a ${kind}.`);

@@ -6,6 +6,7 @@ import { taskRepository } from "@/lib/repositories/task.repository";
 import { meetingRepository } from "@/lib/repositories/meeting.repository";
 import { journalRepository } from "@/lib/repositories/journal.repository";
 import { logActivity } from "./activity.actions";
+import { prisma } from "@/lib/prisma";
 
 function refreshInbox() {
   revalidatePath("/inbox");
@@ -30,30 +31,58 @@ export async function archiveInboxItem(id: string) {
 }
 
 export async function turnInboxIntoTask(id: string, projectId: string) {
-  const item = await inboxRepository.findById(id);
-  if (!item) throw new Error("This inbox item no longer exists.");
-  if (!projectId) throw new Error("Choose a project for this task.");
+  if (!projectId) return { error: "Choose a project for this task." };
 
-  const task = await taskRepository.create({ title: item.content, projectId });
-  await inboxRepository.delete(id);
-  await logActivity({ type: "TASK_CREATED", title: task.title, description: "Created from Inbox", projectId });
+  try {
+    await prisma.$transaction(async (transaction) => {
+      const item = await transaction.inboxItem.findUnique({ where: { id } });
+      if (!item) throw new Error("MISSING_INBOX_ITEM");
+
+      const task = await transaction.task.create({ data: { title: item.content, projectId } });
+      await transaction.activity.create({
+        data: { type: "TASK_CREATED", title: task.title, description: "Created from Inbox", projectId },
+      });
+      await transaction.inboxItem.delete({ where: { id } });
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "MISSING_INBOX_ITEM") {
+      return { error: "This Inbox item no longer exists." };
+    }
+    return { error: "Unable to create the task. Nothing was changed—please try again." };
+  }
+
   refreshInbox();
   revalidatePath("/tasks");
   revalidatePath(`/projects/${projectId}`);
-  return task;
+  return { ok: true };
 }
 
 export async function turnInboxIntoNote(id: string, projectId: string) {
-  const item = await inboxRepository.findById(id);
-  if (!item) throw new Error("This inbox item no longer exists.");
-  if (!projectId) throw new Error("Choose a project for this note.");
+  if (!projectId) return { error: "Choose a project for this note." };
 
-  const note = await journalRepository.create({ title: item.content.slice(0, 80), content: item.content, category: "Inbox", projectId });
-  await inboxRepository.delete(id);
-  await logActivity({ type: "JOURNAL_ENTRY_CREATED", title: note.title, description: "Created from Inbox", projectId });
+  try {
+    await prisma.$transaction(async (transaction) => {
+      const item = await transaction.inboxItem.findUnique({ where: { id } });
+      if (!item) throw new Error("MISSING_INBOX_ITEM");
+
+      const note = await transaction.journalEntry.create({
+        data: { title: item.content.slice(0, 80), content: item.content, category: "Inbox", projectId },
+      });
+      await transaction.activity.create({
+        data: { type: "JOURNAL_ENTRY_CREATED", title: note.title, description: "Created from Inbox", projectId },
+      });
+      await transaction.inboxItem.delete({ where: { id } });
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "MISSING_INBOX_ITEM") {
+      return { error: "This Inbox item no longer exists." };
+    }
+    return { error: "Unable to create the project note. Nothing was changed—please try again." };
+  }
+
   refreshInbox();
   revalidatePath(`/projects/${projectId}`);
-  return note;
+  return { ok: true };
 }
 
 export async function turnInboxIntoMeeting(id: string, meetingDate: Date) {
