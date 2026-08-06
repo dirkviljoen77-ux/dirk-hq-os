@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getGoogleCalendarEvents } from "@/lib/google-drive";
 
 const timeZone = "Africa/Harare";
 const slotSizeMinutes = 30;
@@ -42,7 +43,7 @@ export async function getSchedulingSuggestions(taskId: string) {
   for (let offset = 0; offset < 4 && suggestions.length < 3; offset += 1) {
     const date = new Date(now.getTime() + offset * 24 * 60 * 60_000);
     const { start: dayStart, end: dayEnd } = dayBounds(date);
-    const [meetings, scheduledTasks] = await Promise.all([
+    const [meetings, scheduledTasks, googleCalendar] = await Promise.all([
       prisma.meeting.findMany({
         where: { meetingDate: { gte: dayStart, lt: dayEnd }, status: { not: "CANCELLED" } },
         select: { meetingDate: true },
@@ -55,11 +56,15 @@ export async function getSchedulingSuggestions(taskId: string) {
         },
         select: { scheduledAt: true, durationMinutes: true },
       }),
+      getGoogleCalendarEvents(dayStart, dayEnd),
     ]);
 
     const blocked = [
       ...meetings.map((meeting) => ({ start: meeting.meetingDate, end: new Date(meeting.meetingDate.getTime() + 60 * 60_000) })),
       ...scheduledTasks.filter((task) => task.scheduledAt).map((task) => ({ start: task.scheduledAt!, end: new Date(task.scheduledAt!.getTime() + task.durationMinutes * 60_000) })),
+      ...googleCalendar.events
+        .filter((event) => !event.allDay && event.end)
+        .map((event) => ({ start: event.start, end: event.end! })),
     ];
 
     let candidate = roundUpToSlot(offset === 0 && now > dayStart ? now : dayStart);

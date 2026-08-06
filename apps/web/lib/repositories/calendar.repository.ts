@@ -1,8 +1,13 @@
 import { prisma } from "@/lib/prisma";
+import { getGoogleCalendarEvents } from "@/lib/google-drive";
 
 class CalendarRepository {
   async getCalendar() {
-    const [tasks, meetings, milestones] = await Promise.all([
+    const rangeStart = new Date();
+    rangeStart.setDate(rangeStart.getDate() - 14);
+    const rangeEnd = new Date();
+    rangeEnd.setDate(rangeEnd.getDate() + 90);
+    const [tasks, meetings, milestones, googleCalendar] = await Promise.all([
       prisma.task.findMany({
         where: {
           status: { not: "COMPLETE" },
@@ -19,6 +24,7 @@ class CalendarRepository {
   },
 },  
       }),
+      getGoogleCalendarEvents(rangeStart, rangeEnd),
     ]);
 
     const events = [
@@ -51,7 +57,7 @@ class CalendarRepository {
       })),
     ];
 
-    return events;
+    return { events: [...events, ...googleCalendar.events], googleCalendarConnected: googleCalendar.connected };
   }
 }
 

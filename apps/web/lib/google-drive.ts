@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+const CALENDAR_READ_SCOPE = "https://www.googleapis.com/auth/calendar.events.readonly";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 
 function getOAuthCredentials() {
@@ -20,7 +21,7 @@ function getOAuthConfig() {
 export function getGoogleDriveAuthorizationUrl(state: string) {
   const { clientId, redirectUri } = getOAuthConfig();
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-  url.search = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: "code", scope: DRIVE_SCOPE, access_type: "offline", prompt: "consent", state }).toString();
+  url.search = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: "code", scope: `${DRIVE_SCOPE} ${CALENDAR_READ_SCOPE}`, access_type: "offline", prompt: "consent", state }).toString();
   return url.toString();
 }
 
@@ -44,6 +45,49 @@ async function getAccessToken() {
   if (!response.ok) throw new Error("Google Drive connection expired. Connect Google Drive again.");
   const token = await response.json() as { access_token: string };
   return { accessToken: token.access_token, folderId: connection.folderId };
+}
+
+type GoogleCalendarEvent = {
+  id?: string;
+  status?: string;
+  summary?: string;
+  start?: { dateTime?: string; date?: string };
+  end?: { dateTime?: string; date?: string };
+};
+
+export async function getGoogleCalendarEvents(timeMin: Date, timeMax: Date) {
+  try {
+    const { accessToken } = await getAccessToken();
+    const query = new URLSearchParams({
+      timeMin: timeMin.toISOString(),
+      timeMax: timeMax.toISOString(),
+      singleEvents: "true",
+      orderBy: "startTime",
+    });
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${query}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+    if (!response.ok) return { connected: false, events: [] };
+    const body = await response.json() as { items?: GoogleCalendarEvent[] };
+    const events = (body.items ?? [])
+      .filter((event) => event.id && event.status !== "cancelled" && (event.start?.dateTime || event.start?.date))
+      .map((event) => {
+        const allDay = Boolean(event.start?.date && !event.start?.dateTime);
+        const start = event.start?.dateTime
+          ? new Date(event.start.dateTime)
+          : new Date(`${event.start?.date}T00:00:00+02:00`);
+        const end = event.end?.dateTime
+          ? new Date(event.end.dateTime)
+          : event.end?.date
+            ? new Date(`${event.end.date}T00:00:00+02:00`)
+            : undefined;
+        return { id: `google-${event.id}`, title: `Google: ${event.summary || "Busy"}`, start, end, allDay, color: "#8B5CF6", extendedProps: { kind: "google" } };
+      });
+    return { connected: true, events };
+  } catch {
+    return { connected: false, events: [] };
+  }
 }
 
 export async function uploadToGoogleDrive(file: File) {

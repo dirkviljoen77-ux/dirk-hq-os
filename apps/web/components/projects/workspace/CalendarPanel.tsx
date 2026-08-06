@@ -27,11 +27,13 @@ export default function CalendarPanel({ focusDate }: Props) {
   const router = useRouter();
 
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [googleCalendarConnected, setGoogleCalendarConnected] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   async function loadCalendar() {
     const data = await getCalendar();
-    setEvents(data);
+    setEvents(data.events);
+    setGoogleCalendarConnected(data.googleCalendarConnected);
   }
 
   useEffect(() => {
@@ -82,6 +84,12 @@ export default function CalendarPanel({ focusDate }: Props) {
       }}
     >
       <NotificationSetup />
+      {!googleCalendarConnected && (
+        <a href="/api/google-calendar/connect" style={{ display: "inline-block", margin: "0 0 16px", color: "#C4B5FD" }}>
+          Connect Google Calendar
+        </a>
+      )}
+      {googleCalendarConnected && <p style={{ margin: "0 0 16px", color: "#C4B5FD", fontSize: 14 }}>Google Calendar events are shown in purple.</p>}
       <FullCalendar
         key={`${isMobile ? "mobile" : "desktop"}-${focusDate ?? "default"}`}
         plugins={[
