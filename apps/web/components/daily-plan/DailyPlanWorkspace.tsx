@@ -2,8 +2,10 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { addToDailyPlan, removeFromDailyPlan } from "@/lib/actions/daily-plan.actions";
+import { getSchedulingSuggestions } from "@/lib/actions/scheduling.actions";
+import { scheduleTask } from "@/lib/actions/task.actions";
 
-type Task = { id: string; title: string; dueDate: Date | null; priority: number; project: { id: string; name: string } };
+type Task = { id: string; title: string; dueDate: Date | null; scheduledAt: Date | null; durationMinutes: number; priority: number; project: { id: string; name: string } };
 type PlannedItem = { id: string; task: Task };
 type Meeting = { id: string; title: string; meetingDate: Date };
 type Props = { plannedItems: PlannedItem[]; candidates: Task[]; meetings: Meeting[] };
@@ -11,6 +13,7 @@ type Props = { plannedItems: PlannedItem[]; candidates: Task[]; meetings: Meetin
 export default function DailyPlanWorkspace({ plannedItems: initialItems, candidates, meetings }: Props) {
   const [items, setItems] = useState(initialItems);
   const [message, setMessage] = useState("");
+  const [suggestions, setSuggestions] = useState<Record<string, Date[]>>({});
   const [isPending, startTransition] = useTransition();
   const plannedTaskIds = useMemo(() => new Set(items.map((item) => item.task.id)), [items]);
   const availableTasks = candidates.filter((task) => !plannedTaskIds.has(task.id));
@@ -31,6 +34,22 @@ export default function DailyPlanWorkspace({ plannedItems: initialItems, candida
     });
   }
 
+  function suggest(task: Task) {
+    startTransition(async () => {
+      const slots = await getSchedulingSuggestions(task.id);
+      setSuggestions((current) => ({ ...current, [task.id]: slots }));
+      setMessage(slots.length ? "Choose a suggested time to add the task to your calendar." : "No free working-time slots were found in the next four days.");
+    });
+  }
+
+  function schedule(task: Task, start: Date) {
+    startTransition(async () => {
+      await scheduleTask(task.id, new Date(start), task.durationMinutes || 60);
+      setSuggestions((current) => ({ ...current, [task.id]: [] }));
+      setMessage("Task time-blocked in your calendar.");
+    });
+  }
+
   return (
     <section style={{ color: "#F8FAFC", maxWidth: 1100 }}>
       <h1 style={{ margin: 0, fontSize: 28 }}>Plan today</h1>
@@ -40,7 +59,7 @@ export default function DailyPlanWorkspace({ plannedItems: initialItems, candida
         <div style={panelStyle}>
           <h2 style={headingStyle}>Today’s priorities</h2>
           <p style={hintStyle}>{items.length === 0 ? "Start by choosing up to three important tasks." : `${items.length} task${items.length === 1 ? "" : "s"} selected.`}</p>
-          {items.map(({ id, task }, index) => <TaskRow key={id} task={task} prefix={`${index + 1}`} action="Remove" disabled={isPending} onClick={() => remove(task.id)} />)}
+          {items.map(({ id, task }, index) => <TaskRow key={id} task={task} prefix={`${index + 1}`} action="Remove" disabled={isPending} onClick={() => remove(task.id)} suggestions={suggestions[task.id]} onSuggest={() => suggest(task)} onSchedule={(start) => schedule(task, start)} />)}
           {items.length === 0 && <p style={{ color: "#94A3B8" }}>Nothing is committed to today yet.</p>}
         </div>
 
@@ -66,11 +85,15 @@ export default function DailyPlanWorkspace({ plannedItems: initialItems, candida
   );
 }
 
-function TaskRow({ task, action, onClick, disabled, prefix }: { task: Task; action: string; onClick: () => void; disabled: boolean; prefix?: string }) {
+function TaskRow({ task, action, onClick, disabled, prefix, suggestions, onSuggest, onSchedule }: { task: Task; action: string; onClick: () => void; disabled: boolean; prefix?: string; suggestions?: Date[]; onSuggest?: () => void; onSchedule?: (start: Date) => void }) {
   const overdue = task.dueDate && new Date(task.dueDate).getTime() < new Date().setHours(0, 0, 0, 0);
   return <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: "12px 0", borderBottom: "1px solid #334155" }}>
     <div><strong>{prefix ? `${prefix}. ` : ""}{task.title}</strong><div style={{ marginTop: 3, color: "#94A3B8", fontSize: 13 }}>{task.project.name}{task.dueDate ? ` · ${overdue ? "Overdue" : `Due ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(task.dueDate))}`}` : " · No due date"}</div></div>
-    <button type="button" disabled={disabled} onClick={onClick} style={{ padding: "8px 10px", border: "1px solid #475569", borderRadius: 7, background: "transparent", color: "#F8FAFC", cursor: "pointer", whiteSpace: "nowrap" }}>{action}</button>
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+      {onSuggest && <button type="button" disabled={disabled} onClick={onSuggest} style={{ padding: "8px 10px", border: "1px solid #2563EB", borderRadius: 7, background: "#1D4ED8", color: "#FFFFFF", cursor: "pointer", whiteSpace: "nowrap" }}>Suggest time</button>}
+      <button type="button" disabled={disabled} onClick={onClick} style={{ padding: "8px 10px", border: "1px solid #475569", borderRadius: 7, background: "transparent", color: "#F8FAFC", cursor: "pointer", whiteSpace: "nowrap" }}>{action}</button>
+      {suggestions?.map((start) => <button key={start.toISOString()} type="button" disabled={disabled} onClick={() => onSchedule?.(start)} style={{ padding: "8px 10px", border: "1px solid #475569", borderRadius: 7, background: "#0F172A", color: "#93C5FD", cursor: "pointer", whiteSpace: "nowrap" }}>{new Intl.DateTimeFormat("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Harare" }).format(start)}</button>)}
+    </div>
   </div>;
 }
 
