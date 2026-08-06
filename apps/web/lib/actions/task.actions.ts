@@ -41,6 +41,10 @@ export async function completeTask(id: string) {
     projectId: task.projectId,
   });
 
+  revalidatePath("/");
+  revalidatePath("/tasks");
+  revalidatePath(`/projects/${task.projectId}`);
+
   return task;
 }
 

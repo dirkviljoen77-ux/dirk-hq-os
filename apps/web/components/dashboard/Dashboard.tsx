@@ -4,6 +4,7 @@ import TodaysPriorities from "./TodaysPriorities";
 import QuickActions from "./QuickActions";
 import AIMorningBrief from "./AIMorningBrief";
 import UpcomingMeetings from "./UpcomingMeetings";
+import TodayPlan from "./TodayPlan";
 import { dashboardRepository } from "@/lib/repositories/dashboard.repository";
 
 export default async function Dashboard() {
@@ -84,7 +85,7 @@ export default async function Dashboard() {
   </div>
 
   <div style={{ flex: 1 }}>
-    <TodaysPriorities priorities={dashboard.priorities} />
+    <TodayPlan tasks={dashboard.priorities} meetings={dashboard.meetingsTodayList} />
   </div>
 
   <div style={{ flex: 1 }}>
