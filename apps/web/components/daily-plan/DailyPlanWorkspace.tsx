@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { addToDailyPlan, removeFromDailyPlan } from "@/lib/actions/daily-plan.actions";
 import { getSchedulingSuggestions } from "@/lib/actions/scheduling.actions";
 import { scheduleTask } from "@/lib/actions/task.actions";
+import { generateDailyPlanBrief } from "@/lib/actions/daily-plan-ai.actions";
 
 type Task = { id: string; title: string; dueDate: Date | null; scheduledAt: Date | null; durationMinutes: number; priority: number; project: { id: string; name: string } };
 type PlannedItem = { id: string; task: Task };
@@ -14,6 +15,7 @@ export default function DailyPlanWorkspace({ plannedItems: initialItems, candida
   const [items, setItems] = useState(initialItems);
   const [message, setMessage] = useState("");
   const [suggestions, setSuggestions] = useState<Record<string, Date[]>>({});
+  const [aiBrief, setAiBrief] = useState("");
   const [isPending, startTransition] = useTransition();
   const plannedTaskIds = useMemo(() => new Set(items.map((item) => item.task.id)), [items]);
   const availableTasks = candidates.filter((task) => !plannedTaskIds.has(task.id));
@@ -50,10 +52,27 @@ export default function DailyPlanWorkspace({ plannedItems: initialItems, candida
     });
   }
 
+  function generateAiBrief() {
+    startTransition(async () => {
+      const result = await generateDailyPlanBrief();
+      if (result.error) {
+        setMessage(result.error);
+        return;
+      }
+      setAiBrief(result.brief ?? "");
+      setMessage("AI daily brief ready.");
+    });
+  }
+
   return (
     <section style={{ color: "#F8FAFC", maxWidth: 1100 }}>
       <h1 style={{ margin: 0, fontSize: 28 }}>Plan today</h1>
-      <p style={{ margin: "8px 0 24px", color: "#94A3B8" }}>Choose only the work you can realistically complete around your meetings.</p>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", margin: "8px 0 24px" }}>
+        <p style={{ margin: 0, color: "#94A3B8" }}>Choose only the work you can realistically complete around your meetings.</p>
+        <button type="button" disabled={isPending} onClick={generateAiBrief} style={{ padding: "10px 14px", border: 0, borderRadius: 8, background: "#7C3AED", color: "white", cursor: "pointer" }}>{isPending ? "Thinking…" : "Plan my day with AI"}</button>
+      </div>
+
+      {aiBrief && <div style={{ ...panelStyle, marginBottom: 20, borderColor: "#7C3AED" }}><h2 style={headingStyle}>AI daily brief</h2><div style={{ marginTop: 12, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{aiBrief}</div></div>}
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.2fr) minmax(280px, 0.8fr)", gap: 20 }}>
         <div style={panelStyle}>
