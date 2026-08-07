@@ -19,9 +19,10 @@ type Meeting = {
 type Props = {
   tasks: Task[];
   meetings: Meeting[];
+  notes: { id: string; title: string; project: { name: string } }[];
 };
 
-export default function TodayPlan({ tasks: initialTasks, meetings }: Props) {
+export default function TodayPlan({ tasks: initialTasks, meetings, notes }: Props) {
   const [tasks, setTasks] = useState(initialTasks);
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -50,6 +51,18 @@ export default function TodayPlan({ tasks: initialTasks, meetings }: Props) {
                 {new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Harare" }).format(meeting.meetingDate)}
               </span>
               <span>{meeting.title}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {notes.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <strong style={{ color: "#93C5FD", fontSize: 13, textTransform: "uppercase", letterSpacing: "0.05em" }}>Focus notes</strong>
+          {notes.map((note) => (
+            <div key={note.id} style={{ padding: "9px 0", borderBottom: "1px solid #334155" }}>
+              <div>{note.title}</div>
+              <div style={{ color: "#94A3B8", fontSize: 13 }}>{note.project.name}</div>
             </div>
           ))}
         </div>

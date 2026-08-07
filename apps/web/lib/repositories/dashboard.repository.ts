@@ -9,16 +9,12 @@ class DashboardRepository {
     const todayStart = new Date(`${harareDate}T00:00:00+02:00`);
     const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
-    const [projectCount, outstandingTasks, meetingsToday, documents, recentProjects, priorities, upcomingMeetings, meetingsTodayList] = await Promise.all([
+    const [projectCount, outstandingTasks, meetingCount, documents, inboxCount, priorities, meetingsTodayList, focusNotes] = await Promise.all([
       prisma.project.count(),
       prisma.task.count({ where: { status: { not: "COMPLETE" } } }),
-      prisma.meeting.count({ where: { meetingDate: { gte: todayStart, lt: tomorrowStart }, status: { not: "CANCELLED" } } }),
+      prisma.meeting.count({ where: { status: { not: "CANCELLED" } } }),
       prisma.document.count(),
-      prisma.project.findMany({
-        take: 4,
-        orderBy: { updatedAt: "desc" },
-        select: { id: true, name: true, status: true },
-      }),
+      prisma.inboxItem.count(),
       prisma.task.findMany({
         where: { dueDate: { gte: todayStart, lt: tomorrowStart }, status: { not: "COMPLETE" } },
         take: 4,
@@ -26,19 +22,17 @@ class DashboardRepository {
         select: { id: true, title: true, project: { select: { name: true } } },
       }),
       prisma.meeting.findMany({
-        where: { meetingDate: { gte: now }, status: { not: "CANCELLED" } },
-        take: 4,
-        orderBy: { meetingDate: "asc" },
-        select: { id: true, title: true, meetingDate: true },
-      }),
-      prisma.meeting.findMany({
         where: { meetingDate: { gte: todayStart, lt: tomorrowStart }, status: { not: "CANCELLED" } },
         orderBy: { meetingDate: "asc" },
         select: { id: true, title: true, meetingDate: true },
       }),
+      prisma.dailyPlanNote.findMany({
+        where: { dailyPlan: { planDate: todayStart } },
+        include: { journalEntry: { include: { project: { select: { name: true } } } } },
+      }),
     ]);
 
-    return { projectCount, outstandingTasks, meetingsToday, documents, recentProjects, priorities, upcomingMeetings, meetingsTodayList };
+    return { projectCount, outstandingTasks, meetingCount, documents, inboxCount, priorities, meetingsTodayList, focusNotes };
   }
 
   async getSummary() {

@@ -1,10 +1,6 @@
 import Card from "./Card";
-import RecentProjects from "./RecentProjects";
-import TodaysPriorities from "./TodaysPriorities";
-import QuickActions from "./QuickActions";
-import AIMorningBrief from "./AIMorningBrief";
-import UpcomingMeetings from "./UpcomingMeetings";
 import TodayPlan from "./TodayPlan";
+import WeekCalendar from "./WeekCalendar";
 import { dashboardRepository } from "@/lib/repositories/dashboard.repository";
 
 export default async function Dashboard() {
@@ -50,65 +46,41 @@ export default async function Dashboard() {
           {today}
         </p>
 
-        <p
-          style={{
-            marginTop: "10px",
-            color: "#cbd5e1",
-          }}
-        >
-          Welcome back. Here's what's happening today.
-        </p>
       </header>
 
       <div
+        className="dashboard-summary-cards"
         style={{
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
           gap: "20px",
         }}
       >
         <Card title="Projects" value={dashboard.projectCount.toString()} href="/projects" />
         <Card title="Outstanding Tasks" value={dashboard.outstandingTasks.toString()} href="/tasks?status=outstanding" />
-        <Card title="Meetings Today" value={dashboard.meetingsToday.toString()} href={`/calendar?date=${new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Harare" })}`} />
+        <Card title="All Meetings" value={dashboard.meetingCount.toString()} href="/calendar" />
         <Card title="Documents" value={dashboard.documents.toString()} href="/documents" />
+        <Card title="Inbox Notes" value={dashboard.inboxCount.toString()} href="/inbox" />
       </div>
 
       <div
-  style={{
-    display: "flex",
-    gap: "20px",
-    marginTop: "30px",
-    alignItems: "flex-start",
-  }}
->
-  <div style={{ flex: 1 }}>
-    <RecentProjects projects={dashboard.recentProjects} />
-  </div>
-
-  <div style={{ flex: 1 }}>
-    <TodayPlan tasks={dashboard.priorities} meetings={dashboard.meetingsTodayList} />
-  </div>
-
-  <div style={{ flex: 1 }}>
-    <AIMorningBrief projectCount={dashboard.projectCount} outstandingTasks={dashboard.outstandingTasks} nextMeeting={dashboard.upcomingMeetings[0]} />
-  </div>
-</div>
-
-     <div
-  style={{
-    display: "flex",
-    gap: "20px",
-    marginTop: "30px",
-    alignItems: "flex-start",
-  }}
->
-  <div style={{ flex: 1 }}>
-    <UpcomingMeetings meetings={dashboard.upcomingMeetings} />
-  </div>
-
-  <div style={{ flex: 1 }}>
-    <QuickActions />
-  </div>
-</div>
+        className="dashboard-main-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(280px, 0.8fr) minmax(0, 1.2fr)",
+          gap: "20px",
+          marginTop: "30px",
+          alignItems: "start",
+        }}
+      >
+        <TodayPlan tasks={dashboard.priorities} meetings={dashboard.meetingsTodayList} notes={dashboard.focusNotes.map(({ journalEntry }) => journalEntry)} />
+        <WeekCalendar />
+      </div>
+      <style>{`
+        @media (max-width: 860px) {
+          .dashboard-main-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </>
   );
 }
