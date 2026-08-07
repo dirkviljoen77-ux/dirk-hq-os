@@ -5,6 +5,7 @@ import {
   createJournalEntry,
   deleteJournalEntry,
   getJournalEntries,
+  updateJournalEntry,
 } from "@/lib/actions/journal.actions";
 import { pinNoteToDailyPlan } from "@/lib/actions/daily-plan.actions";
 
@@ -25,6 +26,9 @@ export default function JournalPanel({
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
   const [message, setMessage] = useState("");
   const [, startTransition] = useTransition();
 
@@ -64,6 +68,28 @@ export default function JournalPanel({
     startTransition(async () => {
       await pinNoteToDailyPlan(id);
       setMessage("Pinned to today’s plan.");
+    });
+  }
+
+  function startEditing(entry: JournalEntry) {
+    setEditingId(entry.id);
+    setEditTitle(entry.title);
+    setEditContent(entry.content);
+    setMessage("");
+  }
+
+  async function handleSaveEdit(id: string) {
+    startTransition(async () => {
+      try {
+        await updateJournalEntry({ id, title: editTitle, content: editContent, projectId });
+        setEditingId(null);
+        setEditTitle("");
+        setEditContent("");
+        setMessage("Note updated.");
+        await loadEntries();
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Unable to update this note.");
+      }
     });
   }
 
@@ -128,33 +154,41 @@ export default function JournalPanel({
               borderBottom: "1px solid #334155",
             }}
           >
-            <h3 style={{ marginTop: 0 }}>{entry.title}</h3>
-
-            <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{entry.content}</p>
-
-            <button
-              onClick={() => handlePin(entry.id)}
-              style={{ border: "1px solid #2563EB", background: "transparent", color: "#93C5FD", borderRadius: 6, padding: "7px 10px", cursor: "pointer", marginRight: 14 }}
-            >
-              Pin to Plan today
-            </button>
-
-            <button
-              onClick={() =>
-                handleDelete(entry.id)
-              }
-              style={{
-                border: "none",
-                background: "transparent",
-                color: "#EF4444",
-                cursor: "pointer",
-              }}
-            >
-              Delete
-            </button>
+            {editingId === entry.id ? (
+              <>
+                <input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} aria-label="Note title" style={editTitleStyle} />
+                <textarea value={editContent} onChange={(event) => setEditContent(event.target.value)} aria-label="Note text" rows={7} style={editContentStyle} />
+                <button onClick={() => handleSaveEdit(entry.id)} style={saveButtonStyle}>Save changes</button>
+                <button onClick={() => setEditingId(null)} style={cancelButtonStyle}>Cancel</button>
+              </>
+            ) : (
+              <>
+                <h3 style={{ marginTop: 0 }}>{entry.title}</h3>
+                <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{entry.content}</p>
+                <button onClick={() => startEditing(entry)} style={editButtonStyle}>Edit</button>
+                <button
+                  onClick={() => handlePin(entry.id)}
+                  style={{ border: "1px solid #2563EB", background: "transparent", color: "#93C5FD", borderRadius: 6, padding: "7px 10px", cursor: "pointer", marginRight: 14 }}
+                >
+                  Pin to Plan today
+                </button>
+                <button
+                  onClick={() => handleDelete(entry.id)}
+                  style={{ border: "none", background: "transparent", color: "#EF4444", cursor: "pointer" }}
+                >
+                  Delete
+                </button>
+              </>
+            )}
           </div>
         ))}
       </div>
     </>
   );
 }
+
+const editTitleStyle = { width: "100%", padding: 10, marginBottom: 10, borderRadius: 8, border: "1px solid #475569", background: "#0F172A", color: "white", boxSizing: "border-box" as const };
+const editContentStyle = { ...editTitleStyle, marginBottom: 12, resize: "vertical" as const };
+const saveButtonStyle = { padding: "8px 12px", border: 0, borderRadius: 6, background: "#2563EB", color: "white", cursor: "pointer", marginRight: 12 };
+const cancelButtonStyle = { border: 0, background: "transparent", color: "#94A3B8", cursor: "pointer" };
+const editButtonStyle = { border: "1px solid #475569", background: "transparent", color: "#E2E8F0", borderRadius: 6, padding: "7px 10px", cursor: "pointer", marginRight: 10 };

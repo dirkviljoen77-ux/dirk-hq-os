@@ -7,6 +7,11 @@ export interface CreateJournalInput {
   projectId: string;
 }
 
+export interface UpdateJournalInput {
+  title: string;
+  content: string;
+}
+
 class JournalRepository {
   async findByProject(projectId: string) {
     return prisma.journalEntry.findMany({
@@ -19,6 +24,13 @@ class JournalRepository {
 
   async create(data: CreateJournalInput) {
     return prisma.journalEntry.create({
+      data,
+    });
+  }
+
+  async update(id: string, data: UpdateJournalInput) {
+    return prisma.journalEntry.update({
+      where: { id },
       data,
     });
   }

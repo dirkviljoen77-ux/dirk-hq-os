@@ -36,3 +36,26 @@ export async function deleteJournalEntry(
 ) {
   return journalRepository.delete(id);
 }
+
+export async function updateJournalEntry(data: {
+  id: string;
+  title: string;
+  content: string;
+  projectId: string;
+}) {
+  const title = data.title.trim();
+  const content = data.content.trim();
+  if (!title || !content) throw new Error("A note needs both a title and text.");
+
+  const entry = await journalRepository.update(data.id, { title, content });
+  await logActivity({
+    type: "JOURNAL_ENTRY_UPDATED",
+    title,
+    description: "Journal entry updated",
+    projectId: data.projectId,
+  });
+  revalidatePath(`/projects/${data.projectId}`);
+  revalidatePath("/plan");
+
+  return entry;
+}
