@@ -1,18 +1,20 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { addToDailyPlan, removeFromDailyPlan } from "@/lib/actions/daily-plan.actions";
+import { addToDailyPlan, removeFromDailyPlan, removeNoteFromDailyPlan } from "@/lib/actions/daily-plan.actions";
 import { getSchedulingSuggestions } from "@/lib/actions/scheduling.actions";
 import { scheduleTask } from "@/lib/actions/task.actions";
 import { generateDailyPlanBrief } from "@/lib/actions/daily-plan-ai.actions";
 
 type Task = { id: string; title: string; dueDate: Date | null; scheduledAt: Date | null; durationMinutes: number; priority: number; project: { id: string; name: string } };
 type PlannedItem = { id: string; task: Task };
+type PlannedNote = { id: string; journalEntry: { id: string; title: string; content: string; project: { id: string; name: string } } };
 type Meeting = { id: string; title: string; meetingDate: Date };
-type Props = { plannedItems: PlannedItem[]; candidates: Task[]; meetings: Meeting[] };
+type Props = { plannedItems: PlannedItem[]; plannedNotes: PlannedNote[]; candidates: Task[]; meetings: Meeting[] };
 
-export default function DailyPlanWorkspace({ plannedItems: initialItems, candidates, meetings }: Props) {
+export default function DailyPlanWorkspace({ plannedItems: initialItems, plannedNotes: initialNotes, candidates, meetings }: Props) {
   const [items, setItems] = useState(initialItems);
+  const [notes, setNotes] = useState(initialNotes);
   const [message, setMessage] = useState("");
   const [suggestions, setSuggestions] = useState<Record<string, Date[]>>({});
   const [aiBrief, setAiBrief] = useState("");
@@ -33,6 +35,14 @@ export default function DailyPlanWorkspace({ plannedItems: initialItems, candida
       await removeFromDailyPlan(taskId);
       setItems((current) => current.filter((item) => item.task.id !== taskId));
       setMessage("Removed from today’s plan.");
+    });
+  }
+
+  function removeNote(noteId: string) {
+    startTransition(async () => {
+      await removeNoteFromDailyPlan(noteId);
+      setNotes((current) => current.filter((item) => item.journalEntry.id !== noteId));
+      setMessage("Removed note from today’s plan.");
     });
   }
 
@@ -82,14 +92,27 @@ export default function DailyPlanWorkspace({ plannedItems: initialItems, candida
           {items.length === 0 && <p style={{ color: "#94A3B8" }}>Nothing is committed to today yet.</p>}
         </div>
 
-        <div style={panelStyle}>
-          <h2 style={headingStyle}>Today’s meetings</h2>
-          {meetings.length === 0 ? <p style={hintStyle}>No meetings scheduled today.</p> : meetings.map((meeting) => (
-            <div key={meeting.id} style={{ padding: "10px 0", borderBottom: "1px solid #334155" }}>
-              <strong style={{ color: "#93C5FD" }}>{new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Harare" }).format(meeting.meetingDate)}</strong>
-              <span style={{ marginLeft: 10 }}>{meeting.title}</span>
-            </div>
-          ))}
+        <div style={{ display: "grid", gap: 20 }}>
+          <div style={panelStyle}>
+            <h2 style={headingStyle}>Focus notes</h2>
+            {notes.length === 0 ? <p style={hintStyle}>Pin notes from a project Notebook to bring them into today’s plan.</p> : notes.map(({ id, journalEntry }) => (
+              <div key={id} style={{ padding: "10px 0", borderBottom: "1px solid #334155" }}>
+                <strong>{journalEntry.title}</strong>
+                <div style={{ marginTop: 3, color: "#94A3B8", fontSize: 13 }}>{journalEntry.project.name}</div>
+                <p style={{ margin: "6px 0", whiteSpace: "pre-wrap", color: "#CBD5E1", fontSize: 14 }}>{journalEntry.content}</p>
+                <button type="button" disabled={isPending} onClick={() => removeNote(journalEntry.id)} style={{ padding: 0, border: 0, background: "transparent", color: "#FCA5A5", cursor: "pointer" }}>Remove</button>
+              </div>
+            ))}
+          </div>
+          <div style={panelStyle}>
+            <h2 style={headingStyle}>Today’s meetings</h2>
+            {meetings.length === 0 ? <p style={hintStyle}>No meetings scheduled today.</p> : meetings.map((meeting) => (
+              <div key={meeting.id} style={{ padding: "10px 0", borderBottom: "1px solid #334155" }}>
+                <strong style={{ color: "#93C5FD" }}>{new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Harare" }).format(meeting.meetingDate)}</strong>
+                <span style={{ marginLeft: 10 }}>{meeting.title}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

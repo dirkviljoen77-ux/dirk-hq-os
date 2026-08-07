@@ -6,7 +6,7 @@ type Props = {
 };
 
 const tabs = [
-  "Overview",
+  "Notes",
   "Tasks",
   "Meetings",
   "Documents",
@@ -14,6 +14,7 @@ const tabs = [
   "Activity",
   "Reports",
   "AI",
+  "Overview",
 ];
 
 export default function WorkspaceTabs({

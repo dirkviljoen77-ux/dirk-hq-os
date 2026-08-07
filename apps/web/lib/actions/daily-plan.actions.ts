@@ -24,6 +24,9 @@ export async function getDailyPlan() {
           orderBy: { position: "asc" },
           include: { task: { include: { project: { select: { id: true, name: true } } } } },
         },
+        notes: {
+          include: { journalEntry: { include: { project: { select: { id: true, name: true } } } } },
+        },
       },
     }),
     prisma.task.findMany({
@@ -39,7 +42,7 @@ export async function getDailyPlan() {
     }),
   ]);
 
-  return { planDate, plannedItems: plan?.items ?? [], candidates, meetings };
+  return { planDate, plannedItems: plan?.items ?? [], plannedNotes: plan?.notes ?? [], candidates, meetings };
 }
 
 export async function addToDailyPlan(taskId: string) {
@@ -58,5 +61,23 @@ export async function removeFromDailyPlan(taskId: string) {
   const plan = await prisma.dailyPlan.findUnique({ where: { planDate: todayInHarare() } });
   if (!plan) return;
   await prisma.dailyPlanItem.deleteMany({ where: { dailyPlanId: plan.id, taskId } });
+  refresh();
+}
+
+export async function pinNoteToDailyPlan(journalEntryId: string) {
+  const planDate = todayInHarare();
+  const plan = await prisma.dailyPlan.upsert({ where: { planDate }, update: {}, create: { planDate } });
+  await prisma.dailyPlanNote.upsert({
+    where: { dailyPlanId_journalEntryId: { dailyPlanId: plan.id, journalEntryId } },
+    update: {},
+    create: { dailyPlanId: plan.id, journalEntryId },
+  });
+  refresh();
+}
+
+export async function removeNoteFromDailyPlan(journalEntryId: string) {
+  const plan = await prisma.dailyPlan.findUnique({ where: { planDate: todayInHarare() } });
+  if (!plan) return;
+  await prisma.dailyPlanNote.deleteMany({ where: { dailyPlanId: plan.id, journalEntryId } });
   refresh();
 }

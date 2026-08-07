@@ -6,13 +6,13 @@ import { Project } from "../types";
 import { ProjectProvider } from "../store/ProjectContext";
 
 import ProjectHeader from "./ProjectHeader";
-import ExecutiveBrief from "./ExecutiveBrief";
 import WorkspaceTabs from "./WorkspaceTabs";
 import ExecutiveDashboard from "./ExecutiveDashboard";
 import TasksPanel from "./TasksPanel";
 import MeetingsPanel from "./MeetingsPanel";
 import ActivityPanel from "./ActivityPanel";
 import AIPanel from "./AIPanel";
+import JournalPanel from "./JournalPanel";
 
 import DocumentsPanel from "./DocumentsPanel";
 import CalendarPanel from "./CalendarPanel";
@@ -25,13 +25,11 @@ type Props = {
 export default function ProjectWorkspace({
   project,
 }: Props) {
-  const [activeTab, setActiveTab] = useState("Overview");
+  const [activeTab, setActiveTab] = useState("Notes");
 
   return (
     <ProjectProvider>
       <ProjectHeader project={project} />
-
-      <ExecutiveBrief project={project} />
 
       <WorkspaceTabs
         activeTab={activeTab}
@@ -48,6 +46,8 @@ export default function ProjectWorkspace({
           color: "white",
         }}
       >
+        {activeTab === "Notes" && <JournalPanel projectId={project.id} />}
+
         {activeTab === "Overview" && (
           <ExecutiveDashboard
             projectId={project.id}

@@ -6,6 +6,7 @@ import {
   deleteJournalEntry,
   getJournalEntries,
 } from "@/lib/actions/journal.actions";
+import { pinNoteToDailyPlan } from "@/lib/actions/daily-plan.actions";
 
 type Props = {
   projectId: string;
@@ -24,6 +25,7 @@ export default function JournalPanel({
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [message, setMessage] = useState("");
   const [, startTransition] = useTransition();
 
   async function loadEntries() {
@@ -58,14 +60,22 @@ export default function JournalPanel({
     });
   }
 
+  async function handlePin(id: string) {
+    startTransition(async () => {
+      await pinNoteToDailyPlan(id);
+      setMessage("Pinned to today’s plan.");
+    });
+  }
+
   return (
     <>
-      <h2 style={{ marginTop: 0 }}>Executive Journal</h2>
+      <h2 style={{ marginTop: 0 }}>Project notebook</h2>
+      <p style={{ marginTop: 0, color: "#94A3B8" }}>Capture working notes, decisions, questions and thinking for this project. Pin anything important into today’s plan.</p>
 
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Journal title"
+        placeholder="Give this note a clear title"
         style={{
           width: "100%",
           padding: 10,
@@ -80,7 +90,7 @@ export default function JournalPanel({
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Write your notes..."
+        placeholder="Write, think, plan, or capture a decision…"
         rows={6}
         style={{
           width: "100%",
@@ -104,8 +114,10 @@ export default function JournalPanel({
           cursor: "pointer",
         }}
       >
-        Save Journal Entry
+        Save note
       </button>
+
+      {message && <p role="status" style={{ color: "#93C5FD" }}>{message}</p>}
 
       <div style={{ marginTop: 30 }}>
         {entries.map((entry) => (
@@ -116,9 +128,16 @@ export default function JournalPanel({
               borderBottom: "1px solid #334155",
             }}
           >
-            <h3>{entry.title}</h3>
+            <h3 style={{ marginTop: 0 }}>{entry.title}</h3>
 
-            <p>{entry.content}</p>
+            <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{entry.content}</p>
+
+            <button
+              onClick={() => handlePin(entry.id)}
+              style={{ border: "1px solid #2563EB", background: "transparent", color: "#93C5FD", borderRadius: 6, padding: "7px 10px", cursor: "pointer", marginRight: 14 }}
+            >
+              Pin to Plan today
+            </button>
 
             <button
               onClick={() =>

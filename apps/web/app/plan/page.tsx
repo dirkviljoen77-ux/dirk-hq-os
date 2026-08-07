@@ -6,5 +6,5 @@ export const dynamic = "force-dynamic";
 
 export default async function PlanPage() {
   const plan = await getDailyPlan();
-  return <AppShell title="Plan today"><DailyPlanWorkspace plannedItems={plan.plannedItems} candidates={plan.candidates} meetings={plan.meetings} /></AppShell>;
+  return <AppShell title="Plan today"><DailyPlanWorkspace plannedItems={plan.plannedItems} plannedNotes={plan.plannedNotes} candidates={plan.candidates} meetings={plan.meetings} /></AppShell>;
 }
