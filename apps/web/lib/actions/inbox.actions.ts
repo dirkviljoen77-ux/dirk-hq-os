@@ -2,15 +2,23 @@
 
 import { revalidatePath } from "next/cache";
 import { inboxRepository } from "@/lib/repositories/inbox.repository";
-import { taskRepository } from "@/lib/repositories/task.repository";
 import { meetingRepository } from "@/lib/repositories/meeting.repository";
-import { journalRepository } from "@/lib/repositories/journal.repository";
-import { logActivity } from "./activity.actions";
 import { prisma } from "@/lib/prisma";
 
 function refreshInbox() {
   revalidatePath("/inbox");
   revalidatePath("/");
+}
+
+function todayInHarare() {
+  const date = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Harare",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+  return new Date(`${date}T00:00:00+02:00`);
 }
 
 export async function getInboxItems() {
@@ -81,6 +89,45 @@ export async function turnInboxIntoNote(id: string, projectId: string) {
   }
 
   refreshInbox();
+  revalidatePath(`/projects/${projectId}`);
+  return { ok: true };
+}
+
+export async function turnInboxIntoFocusNote(id: string, projectId: string) {
+  if (!projectId) return { error: "Choose a project for this focus note." };
+
+  try {
+    await prisma.$transaction(async (transaction) => {
+      const item = await transaction.inboxItem.findUnique({ where: { id } });
+      if (!item) throw new Error("MISSING_INBOX_ITEM");
+
+      const note = await transaction.journalEntry.create({
+        data: { title: item.content.slice(0, 80), content: item.content, category: "Focus", projectId },
+      });
+      const plan = await transaction.dailyPlan.upsert({
+        where: { planDate: todayInHarare() },
+        update: {},
+        create: { planDate: todayInHarare() },
+      });
+      await transaction.dailyPlanNote.upsert({
+        where: { dailyPlanId_journalEntryId: { dailyPlanId: plan.id, journalEntryId: note.id } },
+        update: {},
+        create: { dailyPlanId: plan.id, journalEntryId: note.id },
+      });
+      await transaction.activity.create({
+        data: { type: "JOURNAL_ENTRY_CREATED", title: note.title, description: "Focus note created from Inbox", projectId },
+      });
+      await transaction.inboxItem.delete({ where: { id } });
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "MISSING_INBOX_ITEM") {
+      return { error: "This Inbox item no longer exists." };
+    }
+    return { error: "Unable to create the focus note. Nothing was changed—please try again." };
+  }
+
+  refreshInbox();
+  revalidatePath("/plan");
   revalidatePath(`/projects/${projectId}`);
   return { ok: true };
 }
