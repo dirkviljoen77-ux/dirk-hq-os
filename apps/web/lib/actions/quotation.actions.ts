@@ -65,28 +65,35 @@ export async function nextQuotationNumber() {
 }
 
 export async function saveQuotation(input: QuotationInput) {
-  if (!input.quotationNo.trim() || !input.client.company.trim() || !input.jobDescription.trim()) throw new Error("Quotation number, client and job description are required.");
+  if (!input.quotationNo.trim()) return { ok: false as const, error: "Enter a quotation number." };
+  if (!input.client.company.trim()) return { ok: false as const, error: "Select or enter a client." };
+  if (!input.jobDescription.trim()) return { ok: false as const, error: "Enter the job description / overview." };
   const lines = input.lines.filter((line) => line.itemCode.trim() && line.description.trim());
-  if (!lines.length) throw new Error("Add at least one quotation line.");
+  if (!lines.length) return { ok: false as const, error: "Add at least one quotation line." };
 
-  const client = input.client.id
-    ? await prisma.businessClient.update({ where: { id: input.client.id }, data: { company: input.client.company, contactName: input.client.contactName, address: input.client.address, vatTin: input.client.vatTin, email: input.client.email, phone: input.client.phone } })
-    : await prisma.businessClient.create({ data: { company: input.client.company, contactName: input.client.contactName, address: input.client.address, vatTin: input.client.vatTin, email: input.client.email, phone: input.client.phone } });
+  try {
+    const client = input.client.id
+      ? await prisma.businessClient.update({ where: { id: input.client.id }, data: { company: input.client.company, contactName: input.client.contactName, address: input.client.address, vatTin: input.client.vatTin, email: input.client.email, phone: input.client.phone } })
+      : await prisma.businessClient.create({ data: { company: input.client.company, contactName: input.client.contactName, address: input.client.address, vatTin: input.client.vatTin, email: input.client.email, phone: input.client.phone } });
 
   const data = {
     quotationNo: input.quotationNo.trim(), quotationDate: new Date(`${input.quotationDate}T12:00:00`), validDays: input.validDays,
     projectRef: input.projectRef || null, jobDescription: input.jobDescription, vatRate: input.vatRate, status: input.status, clientId: client.id,
   };
 
-  const quotation = input.id
-    ? await prisma.$transaction(async (tx) => {
-        await tx.quotationLine.deleteMany({ where: { quotationId: input.id } });
-        return tx.quotation.update({ where: { id: input.id }, data: { ...data, revision: { increment: 1 }, lines: { create: lines.map((line, position) => ({ ...line, catalogueItemId: line.catalogueItemId || null, position })) } } });
-      })
-    : await prisma.quotation.create({ data: { ...data, lines: { create: lines.map((line, position) => ({ ...line, catalogueItemId: line.catalogueItemId || null, position })) } } });
-  revalidatePath("/istream/quotations");
-  revalidatePath(`/istream/quotations/${quotation.id}`);
-  return quotation;
+    const quotation = input.id
+      ? await prisma.$transaction(async (tx) => {
+          await tx.quotationLine.deleteMany({ where: { quotationId: input.id } });
+          return tx.quotation.update({ where: { id: input.id }, data: { ...data, revision: { increment: 1 }, lines: { create: lines.map((line, position) => ({ ...line, catalogueItemId: line.catalogueItemId || null, position })) } } });
+        })
+      : await prisma.quotation.create({ data: { ...data, lines: { create: lines.map((line, position) => ({ ...line, catalogueItemId: line.catalogueItemId || null, position })) } } });
+    revalidatePath("/istream/quotations");
+    revalidatePath(`/istream/quotations/${quotation.id}`);
+    return { ok: true as const, quotation };
+  } catch (error) {
+    console.error("Unable to save quotation", error);
+    return { ok: false as const, error: "The quotation could not be saved. Check the quotation number and try again." };
+  }
 }
 
 export async function archiveQuotation(id: string) {

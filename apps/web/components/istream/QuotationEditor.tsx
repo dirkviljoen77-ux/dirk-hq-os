@@ -28,7 +28,23 @@ export default function QuotationEditor({ initial, clients, catalogue, nextNumbe
   const setLine = (index: number, patch: Partial<Line>) => setForm((current) => ({ ...current, lines: current.lines.map((line, i) => i === index ? { ...line, ...patch } : line) }));
   const chooseClient = (id: string) => { const client = clients.find((entry) => entry.id === id); if (client) setForm({ ...form, client: { ...client, contactName: client.contactName ?? "", address: client.address ?? "", vatTin: client.vatTin ?? "", email: client.email ?? "", phone: client.phone ?? "" } }); };
   const chooseItem = (index: number, id: string) => { const item = catalogue.find((entry) => entry.id === id); if (item) setLine(index, { catalogueItemId: item.id, itemCode: item.code, description: item.description, unitPrice: item.unitPrice }); };
-  async function submit() { setSaving(true); setError(""); try { const saved = await saveQuotation(form); router.push(`/istream/quotations/${saved.id}`); router.refresh(); } catch (e) { setError(e instanceof Error ? e.message : "Unable to save quotation."); } finally { setSaving(false); } }
+  async function submit() {
+    setSaving(true);
+    setError("");
+    try {
+      const result = await saveQuotation(form);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      router.push(`/istream/quotations/${result.quotation.id}`);
+      router.refresh();
+    } catch {
+      setError("Unable to save the quotation. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return <div style={{ display: "grid", gap: 20 }}>
     <section style={{ background: "#1E293B", border: "1px solid #334155", borderRadius: 12, padding: 20 }}>
