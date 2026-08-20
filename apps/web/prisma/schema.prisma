@@ -37,6 +37,69 @@ model Project {
   workspace      Workspace      @relation(fields: [workspaceId], references: [id])
   risks          Risk[]
   tasks          Task[]
+  quotations     Quotation[]
+}
+
+model BusinessClient {
+  id          String      @id @default(uuid())
+  company     String
+  contactName String?
+  address     String?
+  vatTin      String?
+  email       String?
+  phone       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+  quotations  Quotation[]
+}
+
+model CatalogueItem {
+  id          String          @id @default(uuid())
+  code        String          @unique
+  description String
+  unitPrice   Float           @default(0)
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  lines       QuotationLine[]
+}
+
+model Quotation {
+  id             String          @id @default(uuid())
+  quotationNo    String          @unique
+  quotationDate  DateTime        @default(now())
+  validDays      Int             @default(30)
+  projectRef     String?
+  jobDescription String
+  currency       String          @default("USD")
+  vatRate        Float           @default(0)
+  status         String          @default("DRAFT")
+  revision       Int             @default(0)
+  clientId       String
+  projectId      String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+  client         BusinessClient  @relation(fields: [clientId], references: [id])
+  project        Project?        @relation(fields: [projectId], references: [id])
+  lines          QuotationLine[]
+}
+
+model QuotationLine {
+  id              String         @id @default(uuid())
+  position        Int
+  itemCode        String
+  description     String
+  quantity        Float          @default(1)
+  days            Float          @default(1)
+  unitPrice       Float          @default(0)
+  quotationId     String
+  catalogueItemId String?
+  quotation       Quotation      @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  catalogueItem   CatalogueItem? @relation(fields: [catalogueItemId], references: [id])
+
+  @@index([quotationId, position])
 }
 
 model Person {
@@ -55,20 +118,20 @@ model Person {
 }
 
 model Task {
-  id          String     @id @default(uuid())
-  title       String
-  projectId   String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  deletedAt   DateTime?
-  description String?
-  dueDate     DateTime?
-  scheduledAt DateTime?
-  durationMinutes Int @default(60)
-  priority    Int        @default(3)
-  status      TaskStatus @default(TODO)
-  project     Project    @relation(fields: [projectId], references: [id])
-  dailyPlanItems DailyPlanItem[]
+  id              String          @id @default(uuid())
+  title           String
+  projectId       String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+  description     String?
+  dueDate         DateTime?
+  scheduledAt     DateTime?
+  durationMinutes Int             @default(60)
+  priority        Int             @default(3)
+  status          TaskStatus      @default(TODO)
+  project         Project         @relation(fields: [projectId], references: [id])
+  dailyPlanItems  DailyPlanItem[]
 }
 
 model DailyPlan {
@@ -103,19 +166,19 @@ model DailyPlanNote {
 }
 
 model Meeting {
-  id          String        @id @default(uuid())
-  title       String
-  meetingDate DateTime
-  projectId   String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  deletedAt   DateTime?
-  description String?
-  location    String?
-  status      MeetingStatus @default(SCHEDULED)
-  googleEventId String?      @unique
-  project     Project?       @relation(fields: [projectId], references: [id])
-  reminders   MeetingReminder[]
+  id            String            @id @default(uuid())
+  title         String
+  meetingDate   DateTime
+  projectId     String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
+  description   String?
+  location      String?
+  status        MeetingStatus     @default(SCHEDULED)
+  googleEventId String?           @unique
+  project       Project?          @relation(fields: [projectId], references: [id])
+  reminders     MeetingReminder[]
 }
 
 model PushSubscription {
@@ -128,12 +191,12 @@ model PushSubscription {
 }
 
 model MeetingReminder {
-  id           String   @id @default(uuid())
-  meetingId    String   @unique
+  id           String    @id @default(uuid())
+  meetingId    String    @unique
   scheduledFor DateTime
   sentAt       DateTime?
-  createdAt    DateTime @default(now())
-  meeting      Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  meeting      Meeting   @relation(fields: [meetingId], references: [id], onDelete: Cascade)
 }
 
 model Document {
@@ -231,14 +294,14 @@ model Finance {
 }
 
 model JournalEntry {
-  id        String   @id @default(uuid())
-  title     String
-  content   String
-  category  String   @default("General")
-  projectId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  project   Project  @relation(fields: [projectId], references: [id])
+  id             String          @id @default(uuid())
+  title          String
+  content        String
+  category       String          @default("General")
+  projectId      String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  project        Project         @relation(fields: [projectId], references: [id])
   dailyPlanNotes DailyPlanNote[]
 }
 

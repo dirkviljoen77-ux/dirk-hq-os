@@ -12,6 +12,7 @@ type AppShellProps = {
 
 const menu = [
   { label: "Dashboard", href: "/" },
+  { label: "Istream Business", href: "/istream/quotations" },
   { label: "Projects", href: "/projects" },
   { label: "Calendar", href: "/calendar" },
   { label: "Plan today", href: "/plan" },
@@ -79,7 +80,7 @@ export default function AppShell({ children, title }: AppShellProps) {
 
         <nav className="app-shell__nav" id="main-navigation">
           {menu.map((item) => {
-            const active = pathname === item.href;
+            const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(`${item.href}/`));
 
             return (
               <Link
