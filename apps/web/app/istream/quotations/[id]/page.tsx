@@ -7,5 +7,5 @@ export default async function EditQuotationPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const [quotation, workspace, nextNumber] = await Promise.all([getQuotation(id), getQuotationWorkspace(), nextQuotationNumber()]);
   if (!quotation) notFound();
-  return <AppShell title="Istream Business"><h1>Edit {quotation.quotationNo}</h1><p style={{ color: "#94A3B8" }}>Revision {quotation.revision} · Last updated {quotation.updatedAt.toLocaleString("en-GB")}</p><QuotationEditor initial={quotation} clients={workspace.clients} catalogue={workspace.catalogue} nextNumber={nextNumber} /></AppShell>;
+  return <AppShell title="Istream Business"><h1>Edit {quotation.quotationNo}</h1><p style={{ color: "#94A3B8" }}>Revision {quotation.revision} · Last updated {quotation.updatedAt.toLocaleString("en-GB")}</p><QuotationEditor initial={quotation} clients={workspace.clients} catalogue={workspace.catalogue} projects={workspace.projects} nextNumber={nextNumber} /></AppShell>;
 }

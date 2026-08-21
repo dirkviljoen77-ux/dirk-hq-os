@@ -14,6 +14,7 @@ export interface UpdateProjectInput {
 class ProjectRepository {
   async findAll() {
     return prisma.project.findMany({
+      where: { deletedAt: null, jobNo: null },
       orderBy: {
         createdAt: "desc",
       },

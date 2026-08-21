@@ -18,32 +18,38 @@ model Workspace {
 }
 
 model Project {
-  id             String         @id @default(uuid())
-  name           String
-  jobNo          String?        @unique
-  description    String?
-  status         String         @default("Planned")
-  startDate      DateTime?
-  endDate        DateTime?
-  closedAt       DateTime?
-  closureNote    String?
-  workspaceId    String
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  deletedAt      DateTime?
-  activities     Activity[]
-  decisions      Decision[]
-  documents      Document[]
-  finance        Finance?
-  expenses       JobExpense[]
-  journalEntries JournalEntry[]
-  meetings       Meeting[]
-  milestones     Milestone[]
-  people         Person[]
-  workspace      Workspace      @relation(fields: [workspaceId], references: [id])
-  risks          Risk[]
-  tasks          Task[]
-  quotations     Quotation[]
+  id                 String         @id @default(uuid())
+  name               String
+  jobNo              String?        @unique
+  description        String?
+  status             String         @default("Planned")
+  startDate          DateTime?
+  endDate            DateTime?
+  closedAt           DateTime?
+  closureNote        String?
+  parentProjectId    String?
+  workspaceId        String
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  deletedAt          DateTime?
+  activities         Activity[]
+  decisions          Decision[]
+  documents          Document[]
+  finance            Finance?
+  expenses           JobExpense[]
+  journalEntries     JournalEntry[]
+  meetings           Meeting[]
+  milestones         Milestone[]
+  people             Person[]
+  workspace          Workspace      @relation(fields: [workspaceId], references: [id])
+  risks              Risk[]
+  tasks              Task[]
+  quotations         Quotation[]    @relation("ConvertedJob")
+  businessQuotations Quotation[]    @relation("BusinessProject")
+  parentProject      Project?       @relation("ProjectJobs", fields: [parentProjectId], references: [id])
+  jobs               Project[]      @relation("ProjectJobs")
+
+  @@index([parentProjectId])
 }
 
 model BusinessClient {
@@ -72,25 +78,29 @@ model CatalogueItem {
 }
 
 model Quotation {
-  id             String              @id @default(uuid())
-  quotationNo    String              @unique
-  quotationDate  DateTime            @default(now())
-  validDays      Int                 @default(30)
-  projectRef     String?
-  jobDescription String
-  currency       String              @default("USD")
-  vatRate        Float               @default(0)
-  status         String              @default("DRAFT")
-  revision       Int                 @default(0)
-  clientId       String
-  projectId      String?
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  deletedAt      DateTime?
-  client         BusinessClient      @relation(fields: [clientId], references: [id])
-  project        Project?            @relation(fields: [projectId], references: [id])
-  lines          QuotationLine[]
-  revisions      QuotationRevision[]
+  id                String              @id @default(uuid())
+  quotationNo       String              @unique
+  quotationDate     DateTime            @default(now())
+  validDays         Int                 @default(30)
+  projectRef        String?
+  jobDescription    String
+  currency          String              @default("USD")
+  vatRate           Float               @default(0)
+  status            String              @default("DRAFT")
+  revision          Int                 @default(0)
+  clientId          String
+  projectId         String?
+  businessProjectId String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  deletedAt         DateTime?
+  client            BusinessClient      @relation(fields: [clientId], references: [id])
+  project           Project?            @relation("ConvertedJob", fields: [projectId], references: [id])
+  businessProject   Project?            @relation("BusinessProject", fields: [businessProjectId], references: [id])
+  lines             QuotationLine[]
+  revisions         QuotationRevision[]
+
+  @@index([businessProjectId])
 }
 
 model QuotationRevision {
