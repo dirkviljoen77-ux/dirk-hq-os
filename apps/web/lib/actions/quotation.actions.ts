@@ -122,6 +122,8 @@ export async function saveQuotation(input: QuotationInput) {
       : await prisma.quotation.create({ data: { ...data, lines: { create: cleanLines } } });
     revalidatePath("/istream/quotations");
     revalidatePath(`/istream/quotations/${quotation.id}`);
+    revalidatePath("/projects/[id]", "page");
+    if (businessProjectId) revalidatePath(`/projects/${businessProjectId}`);
     return { ok: true as const, quotation };
   } catch (error) {
     console.error("Unable to save quotation", error);
@@ -259,6 +261,7 @@ export async function convertQuotationToJob(input: { quotationId: string; name: 
       return created;
     });
     revalidatePath("/istream/quotations"); revalidatePath("/istream/jobs"); revalidatePath("/projects");
+    revalidatePath("/projects/[id]", "page"); revalidatePath(`/projects/${businessProjectId}`);
     return { ok: true as const, projectId: project.id, alreadyConverted: false };
   } catch (error) {
     return { ok: false as const, error: error instanceof Error ? error.message : "The quotation could not be converted." };

@@ -3,6 +3,8 @@ import ProjectWorkspace from "../../../components/projects/workspace/ProjectWork
 import { getProject } from "@/lib/actions/project.actions";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 const money = (value: number, currency = "USD") =>
   new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value);
 
