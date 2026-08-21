@@ -13,8 +13,8 @@ export default function QuotationRowActions({ id, archived }: { id: string; arch
     router.refresh(); setBusy(false);
   }
   return <div style={{ display: "flex", gap: 7 }}>
-    {!archived && <><button disabled={busy} onClick={() => run("duplicate")}>Duplicate</button><button disabled={busy} onClick={() => run("archive")}>Archive</button></>}
+    {!archived && <><button className="open" disabled={busy} onClick={() => router.push(`/istream/quotations/${id}`)}>Open quotation</button><button disabled={busy} onClick={() => run("duplicate")}>Duplicate</button><button disabled={busy} onClick={() => run("archive")}>Archive</button></>}
     {archived && <button disabled={busy} onClick={() => run("restore")}>Restore</button>}
-    <style jsx>{`button{border:1px solid #475569;border-radius:6px;background:#0f172a;color:#cbd5e1;padding:6px 9px;cursor:pointer}`}</style>
+    <style jsx>{`button{border:1px solid #475569;border-radius:6px;background:#0f172a;color:#cbd5e1;padding:6px 9px;cursor:pointer}.open{background:#2563eb;border-color:#2563eb;color:white;font-weight:700}`}</style>
   </div>;
 }
