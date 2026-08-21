@@ -17,6 +17,7 @@ import JournalPanel from "./JournalPanel";
 import DocumentsPanel from "./DocumentsPanel";
 import CalendarPanel from "./CalendarPanel";
 import ReportsPanel from "./ReportsPanel";
+import FinancePanel from "./FinancePanel";
 
 type Props = {
   project: Project;
@@ -100,6 +101,8 @@ export default function ProjectWorkspace({
             projectId={project.id}
           />
         )}
+
+        {activeTab === "Finance" && <FinancePanel projectId={project.id} />}
 
         {activeTab === "AI" && (
           <AIPanel

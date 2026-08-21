@@ -20,8 +20,11 @@ model Workspace {
 model Project {
   id             String         @id @default(uuid())
   name           String
+  jobNo          String?        @unique
   description    String?
   status         String         @default("Planned")
+  startDate      DateTime?
+  endDate        DateTime?
   workspaceId    String
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt

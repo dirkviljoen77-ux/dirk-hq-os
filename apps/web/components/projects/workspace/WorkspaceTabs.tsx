@@ -13,6 +13,7 @@ const tabs = [
   "Calendar",
   "Activity",
   "Reports",
+  "Finance",
   "AI",
   "Overview",
 ];

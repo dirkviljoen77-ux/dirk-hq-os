@@ -38,20 +38,18 @@ export default function FinancePanel({
     alert("Finance saved.");
   }
 
-  const variance =
-    finance.approvedBudget - finance.forecastCost;
-
-  const remaining =
-    finance.approvedBudget - finance.actualCost;
+  const forecastProfit = finance.approvedBudget - finance.forecastCost;
+  const actualProfit = finance.approvedBudget - finance.actualCost;
+  const margin = finance.approvedBudget ? actualProfit / finance.approvedBudget * 100 : 0;
 
   return (
     <>
       <h2 style={{ marginTop: 0 }}>
-        Project Finance
+        Job Costing
       </h2>
 
       <FinanceField
-        label="Approved Budget"
+        label="Quoted Revenue"
         value={finance.approvedBudget}
         onChange={(v) =>
           setFinance({
@@ -105,16 +103,17 @@ export default function FinancePanel({
         <h3>Executive Summary</h3>
 
         <p>
-          Budget Variance:
+          Forecast Gross Profit:
           {" "}
-          {variance.toLocaleString()}
+          {finance.currency} {forecastProfit.toLocaleString()}
         </p>
 
         <p>
-          Budget Remaining:
+          Actual Gross Profit:
           {" "}
-          {remaining.toLocaleString()}
+          {finance.currency} {actualProfit.toLocaleString()}
         </p>
+        <p>Gross Margin: {margin.toFixed(1)}%</p>
       </div>
 
       <button

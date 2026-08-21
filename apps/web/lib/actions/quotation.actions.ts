@@ -193,3 +193,50 @@ export async function getBusinessManagementData() {
   ]);
   return { clients, catalogue };
 }
+
+async function nextJobNumber() {
+  const year = new Date().getFullYear();
+  const prefix = `JOB-${year}-`;
+  const last = await prisma.project.findFirst({ where: { jobNo: { startsWith: prefix } }, orderBy: { jobNo: "desc" }, select: { jobNo: true } });
+  const sequence = Number(last?.jobNo?.slice(prefix.length) || 0) + 1;
+  return `${prefix}${String(sequence).padStart(4, "0")}`;
+}
+
+export async function convertQuotationToJob(input: { quotationId: string; name: string; startDate: string; endDate?: string }) {
+  try {
+    const quotation = await prisma.quotation.findUniqueOrThrow({ where: { id: input.quotationId }, include: { client: true, lines: true } });
+    if (quotation.projectId) return { ok: true as const, projectId: quotation.projectId, alreadyConverted: true };
+    if (!input.name.trim() || !input.startDate) return { ok: false as const, error: "Enter a job name and start date." };
+    const workspace = await prisma.workspace.findFirst({ orderBy: { createdAt: "asc" } });
+    if (!workspace) return { ok: false as const, error: "The Dirk-HQ workspace could not be found." };
+    const subtotal = quotation.lines.reduce((sum, line) => sum + line.quantity * line.days * line.unitPrice, 0);
+    const quotedTotal = subtotal * (1 + quotation.vatRate / 100);
+    const jobNo = await nextJobNumber();
+    const startDate = new Date(`${input.startDate}T08:00:00`);
+    const endDate = input.endDate ? new Date(`${input.endDate}T17:00:00`) : startDate;
+    const project = await prisma.$transaction(async (tx) => {
+      const created = await tx.project.create({ data: {
+        name: input.name.trim(), jobNo, description: `${quotation.jobDescription}\n\nClient: ${quotation.client.company}\nQuotation: ${quotation.quotationNo}`,
+        status: "Planned", startDate, endDate, workspaceId: workspace.id,
+        finance: { create: { approvedBudget: quotedTotal, forecastCost: 0, actualCost: 0, currency: quotation.currency } },
+        tasks: { create: { title: `${jobNo} – ${input.name.trim()}`, description: quotation.jobDescription, scheduledAt: startDate, dueDate: endDate, status: "TODO" } },
+        activities: { create: { type: "JOB_CREATED", title: `Job created from ${quotation.quotationNo}`, description: `Quoted value ${quotation.currency} ${quotedTotal.toFixed(2)}` } },
+      } });
+      await tx.quotation.update({ where: { id: quotation.id }, data: { projectId: created.id, status: "ACCEPTED" } });
+      return created;
+    });
+    revalidatePath("/istream/quotations"); revalidatePath("/istream/jobs"); revalidatePath("/projects");
+    return { ok: true as const, projectId: project.id, alreadyConverted: false };
+  } catch (error) {
+    return { ok: false as const, error: error instanceof Error ? error.message : "The quotation could not be converted." };
+  }
+}
+
+export async function getJobRegister() {
+  const projects = await prisma.project.findMany({
+    where: { deletedAt: null, quotations: { some: {} } },
+    include: { finance: true, quotations: { include: { client: true }, orderBy: { createdAt: "desc" }, take: 1 } },
+    orderBy: { createdAt: "desc" },
+  });
+  return projects;
+}
