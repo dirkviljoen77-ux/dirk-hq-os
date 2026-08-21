@@ -338,6 +338,16 @@ model JobExpense {
   @@index([paymentStatus])
 }
 
+model MonthlyBusinessBudget {
+  id            String   @id @default(uuid())
+  period        DateTime @unique
+  salesBudget   Float    @default(0)
+  expenseBudget Float    @default(0)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 model JournalEntry {
   id             String          @id @default(uuid())
   title          String
