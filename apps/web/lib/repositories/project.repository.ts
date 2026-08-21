@@ -28,7 +28,6 @@ class ProjectRepository {
       },
       include: {
         businessQuotations: {
-          where: { deletedAt: null },
           include: { client: true, lines: true },
           orderBy: { quotationDate: "desc" },
         },
@@ -37,7 +36,6 @@ class ProjectRepository {
           include: {
             finance: true,
             quotations: {
-              where: { deletedAt: null },
               include: { client: true },
               orderBy: { updatedAt: "desc" },
               take: 1,

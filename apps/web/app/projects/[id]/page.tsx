@@ -77,7 +77,7 @@ export default async function ProjectPage({
         <div className="commercial-table"><table><thead><tr><th>Quotation</th><th>Client</th><th>Date</th><th>Status</th><th>Value</th><th></th></tr></thead><tbody>
           {quotations.map((quotation) => {
             const subtotal = quotation.lines.reduce((sum, line) => sum + line.quantity * line.days * line.unitPrice, 0);
-            return <tr key={quotation.id}><td>{quotation.quotationNo}</td><td>{quotation.client.company}</td><td>{quotation.quotationDate.toLocaleDateString("en-GB")}</td><td>{quotation.status}</td><td>{money(subtotal * (1 + quotation.vatRate / 100), quotation.currency)}</td><td><Link href={`/istream/quotations/${quotation.id}`}>Open</Link></td></tr>;
+            return <tr key={quotation.id}><td>{quotation.quotationNo}</td><td>{quotation.client.company}</td><td>{quotation.quotationDate.toLocaleDateString("en-GB")}</td><td>{quotation.status}{quotation.deletedAt ? " · Archived" : ""}</td><td>{money(subtotal * (1 + quotation.vatRate / 100), quotation.currency)}</td><td><Link href={`/istream/quotations/${quotation.id}`}>Open</Link></td></tr>;
           })}
           {!quotations.length && <tr><td colSpan={6} className="empty">No quotations are attached to this project yet.</td></tr>}
         </tbody></table></div>
