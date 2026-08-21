@@ -26,6 +26,26 @@ class ProjectRepository {
       where: {
         id,
       },
+      include: {
+        businessQuotations: {
+          where: { deletedAt: null },
+          include: { client: true, lines: true },
+          orderBy: { quotationDate: "desc" },
+        },
+        jobs: {
+          where: { deletedAt: null },
+          include: {
+            finance: true,
+            quotations: {
+              where: { deletedAt: null },
+              include: { client: true },
+              orderBy: { updatedAt: "desc" },
+              take: 1,
+            },
+          },
+          orderBy: { startDate: "desc" },
+        },
+      },
     });
   }
 
