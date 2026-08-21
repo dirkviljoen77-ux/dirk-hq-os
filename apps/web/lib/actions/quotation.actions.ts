@@ -70,6 +70,15 @@ export async function saveQuotation(input: QuotationInput) {
   if (!input.jobDescription.trim()) return { ok: false as const, error: "Enter the job description / overview." };
   const lines = input.lines.filter((line) => line.itemCode.trim() && line.description.trim());
   if (!lines.length) return { ok: false as const, error: "Add at least one quotation line." };
+  const cleanLines = lines.map((line, position) => ({
+    position,
+    catalogueItemId: line.catalogueItemId || null,
+    itemCode: line.itemCode,
+    description: line.description,
+    quantity: Number(line.quantity || 0),
+    days: Number(line.days || 0),
+    unitPrice: Number(line.unitPrice || 0),
+  }));
 
   try {
     const client = input.client.id
@@ -90,9 +99,14 @@ export async function saveQuotation(input: QuotationInput) {
             create: { quotationId: previous.id, revision: previous.revision, snapshot: quotationSnapshot(previous) },
           });
           await tx.quotationLine.deleteMany({ where: { quotationId: input.id } });
-          return tx.quotation.update({ where: { id: input.id }, data: { ...data, revision: { increment: 1 }, lines: { create: lines.map((line, position) => ({ ...line, catalogueItemId: line.catalogueItemId || null, position })) } } });
+          const updated = await tx.quotation.update({ where: { id: input.id }, data: { ...data, revision: { increment: 1 }, lines: { create: cleanLines } } });
+          if (previous.projectId) {
+            const subtotal = cleanLines.reduce((sum, line) => sum + line.quantity * line.days * line.unitPrice, 0);
+            await tx.finance.upsert({ where: { projectId: previous.projectId }, update: { approvedBudget: subtotal * (1 + input.vatRate / 100) }, create: { projectId: previous.projectId, approvedBudget: subtotal * (1 + input.vatRate / 100) } });
+          }
+          return updated;
         })
-      : await prisma.quotation.create({ data: { ...data, lines: { create: lines.map((line, position) => ({ ...line, catalogueItemId: line.catalogueItemId || null, position })) } } });
+      : await prisma.quotation.create({ data: { ...data, lines: { create: cleanLines } } });
     revalidatePath("/istream/quotations");
     revalidatePath(`/istream/quotations/${quotation.id}`);
     return { ok: true as const, quotation };
