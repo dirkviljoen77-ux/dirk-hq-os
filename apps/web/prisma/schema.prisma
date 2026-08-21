@@ -66,24 +66,37 @@ model CatalogueItem {
 }
 
 model Quotation {
-  id             String          @id @default(uuid())
-  quotationNo    String          @unique
-  quotationDate  DateTime        @default(now())
-  validDays      Int             @default(30)
+  id             String              @id @default(uuid())
+  quotationNo    String              @unique
+  quotationDate  DateTime            @default(now())
+  validDays      Int                 @default(30)
   projectRef     String?
   jobDescription String
-  currency       String          @default("USD")
-  vatRate        Float           @default(0)
-  status         String          @default("DRAFT")
-  revision       Int             @default(0)
+  currency       String              @default("USD")
+  vatRate        Float               @default(0)
+  status         String              @default("DRAFT")
+  revision       Int                 @default(0)
   clientId       String
   projectId      String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
   deletedAt      DateTime?
-  client         BusinessClient  @relation(fields: [clientId], references: [id])
-  project        Project?        @relation(fields: [projectId], references: [id])
+  client         BusinessClient      @relation(fields: [clientId], references: [id])
+  project        Project?            @relation(fields: [projectId], references: [id])
   lines          QuotationLine[]
+  revisions      QuotationRevision[]
+}
+
+model QuotationRevision {
+  id          String    @id @default(uuid())
+  revision    Int
+  snapshot    Json
+  quotationId String
+  createdAt   DateTime  @default(now())
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  @@unique([quotationId, revision])
+  @@index([quotationId, createdAt])
 }
 
 model QuotationLine {
