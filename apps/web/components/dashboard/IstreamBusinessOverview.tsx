@@ -15,8 +15,8 @@ export default async function IstreamBusinessOverview() {
   const quotedPipeline = openQuotes.reduce((sum, q) => sum + qTotal(q), 0);
   const jobRevenue = activeJobs.reduce((sum, j) => sum + (j.finance?.approvedBudget || 0), 0);
   const clientOutstanding = activeJobs.reduce((sum, j) => sum + Math.max(0, (j.finance?.invoiceAmount || j.finance?.approvedBudget || 0) - (j.finance?.amountReceived || 0)), 0);
-  const ytd = financial.months.filter((row) => row.month <= currentMonth);
-  const total = (key: string) => ytd.reduce((sum: number, row: any) => sum + row[key], 0);
+  const period = financial.months[currentMonth];
+  const total = (key: string) => (period as any)[key] || 0;
   const salesBudget = total("salesBudget"), actualSales = total("invoiced"), directBudget = total("expenseBudget"), actualDirect = total("actualExpenses"), overheadBudget = total("overheadBudget"), actualOverheads = total("actualOverheads");
   const budgetProfit = salesBudget - directBudget - overheadBudget, actualProfit = actualSales - actualDirect - actualOverheads;
   const percent = (actual: number, budget: number) => budget ? `${(actual / budget * 100).toFixed(1)}%` : actual ? "No budget" : "0.0%";
@@ -24,9 +24,9 @@ export default async function IstreamBusinessOverview() {
   const upcoming = activeJobs.filter((job) => job.startDate && job.startDate >= new Date(new Date().setHours(0, 0, 0, 0))).slice(0, 5);
   const money = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
   return <section style={{ marginTop: 30, background: "#111C30", border: "1px solid #334155", borderRadius: 14, padding: 20 }}>
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}><div><h2 style={{ margin: 0 }}>Istream Business · {year} YTD</h2><p style={{ color: "#94A3B8", margin: "6px 0 0" }}>Running budget, actual cost and profitability position through {new Date(year,currentMonth,1).toLocaleString("en-GB",{month:"long"})}</p></div><Link href="/istream/dashboard" style={{ color: "#60A5FA", fontWeight: 700 }}>Full financial dashboard →</Link></div>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}><div><h2 style={{ margin: 0 }}>Istream Business · {new Date(year,currentMonth,1).toLocaleString("en-GB",{month:"long",year:"numeric"})}</h2><p style={{ color: "#94A3B8", margin: "6px 0 0" }}>Current-month budget, actual cost and profitability position</p></div><Link href={`/istream/dashboard?period=${year}-${String(currentMonth+1).padStart(2,"0")}`} style={{ color: "#60A5FA", fontWeight: 700 }}>Full monthly dashboard →</Link></div>
     <div className="istream-kpis">{[
-      {label:"Sales budget",value:money(salesBudget),detail:"YTD target"},{label:"Actual sales",value:money(actualSales),detail:`${percent(actualSales,salesBudget)} of budget`},
+      {label:"Sales budget",value:money(salesBudget),detail:"Monthly target"},{label:"Actual sales",value:money(actualSales),detail:`${percent(actualSales,salesBudget)} of budget`},
       {label:"Direct-cost budget",value:money(directBudget),detail:"Job-cost allowance"},{label:"Actual job costs",value:money(actualDirect),detail:`${percent(actualDirect,directBudget)} of budget`},
       {label:"Overhead budget",value:money(overheadBudget),detail:"Rent, payroll and operations"},{label:"Actual overheads",value:money(actualOverheads),detail:`${percent(actualOverheads,overheadBudget)} of budget`},
       {label:"Budgeted P/L",value:money(budgetProfit),detail:"Sales less all budgeted costs"},{label:"Actual P/L",value:money(actualProfit),detail:`Variance ${money(actualProfit-budgetProfit)} · Margin ${margin}`},
