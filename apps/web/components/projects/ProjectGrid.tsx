@@ -1,8 +1,8 @@
 import ProjectCard from "./ProjectCard";
-import { Project } from "./types";
+import { ProjectCardData } from "./types";
 
 type Props = {
-  projects: Project[];
+  projects: ProjectCardData[];
 };
 
 export default function ProjectGrid({ projects }: Props) {

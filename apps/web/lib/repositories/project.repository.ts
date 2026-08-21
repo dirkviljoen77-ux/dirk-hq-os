@@ -15,6 +15,14 @@ class ProjectRepository {
   async findAll() {
     return prisma.project.findMany({
       where: { deletedAt: null, jobNo: null },
+      include: {
+        businessQuotations: { include: { lines: true } },
+        jobs: {
+          where: { deletedAt: null },
+          include: { finance: true },
+        },
+        tasks: { select: { status: true } },
+      },
       orderBy: {
         createdAt: "desc",
       },
