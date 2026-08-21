@@ -2,6 +2,7 @@ import Card from "./Card";
 import TodayPlan from "./TodayPlan";
 import WeekCalendar from "./WeekCalendar";
 import { dashboardRepository } from "@/lib/repositories/dashboard.repository";
+import IstreamBusinessOverview from "./IstreamBusinessOverview";
 
 export default async function Dashboard() {
   const dashboard = await dashboardRepository.getLiveDashboard();
@@ -62,6 +63,8 @@ export default async function Dashboard() {
         <Card title="Documents" value={dashboard.documents.toString()} href="/documents" />
         <Card title="Inbox Notes" value={dashboard.inboxCount.toString()} href="/inbox" />
       </div>
+
+      <IstreamBusinessOverview />
 
       <div
         className="dashboard-main-grid"

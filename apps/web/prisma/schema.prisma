@@ -25,6 +25,8 @@ model Project {
   status         String         @default("Planned")
   startDate      DateTime?
   endDate        DateTime?
+  closedAt       DateTime?
+  closureNote    String?
   workspaceId    String
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -298,16 +300,22 @@ model Milestone {
 }
 
 model Finance {
-  id             String   @id @default(uuid())
-  approvedBudget Float    @default(0)
-  forecastCost   Float    @default(0)
-  actualCost     Float    @default(0)
-  contingency    Float    @default(0)
-  currency       String   @default("USD")
-  projectId      String   @unique
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  project        Project  @relation(fields: [projectId], references: [id])
+  id             String    @id @default(uuid())
+  approvedBudget Float     @default(0)
+  forecastCost   Float     @default(0)
+  actualCost     Float     @default(0)
+  contingency    Float     @default(0)
+  currency       String    @default("USD")
+  invoiceNo      String?
+  invoiceDate    DateTime?
+  invoiceAmount  Float     @default(0)
+  amountReceived Float     @default(0)
+  paymentDate    DateTime?
+  paymentRef     String?
+  projectId      String    @unique
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  project        Project   @relation(fields: [projectId], references: [id])
 }
 
 model JobExpense {

@@ -12,7 +12,8 @@ export async function getFinance(
     financeRepository.get(projectId),
     prisma.jobExpense.findMany({ where: { projectId }, orderBy: { createdAt: "desc" } }),
   ]);
-  return { finance, expenses };
+  const project = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true, jobNo: true, status: true, closedAt: true, closureNote: true } });
+  return { finance, expenses, project };
 }
 
 export type JobExpenseInput = { id?: string; projectId: string; supplier: string; category: string; description: string; estimatedCost: number; actualCost: number; paymentStatus: string; reference?: string; paymentDate?: string; attachmentUrl?: string };
@@ -35,6 +36,32 @@ export async function deleteJobExpense(id: string, projectId: string) {
   await prisma.jobExpense.delete({ where: { id } });
   await syncExpenseTotals(projectId);
   revalidatePath(`/projects/${projectId}`); revalidatePath("/istream/jobs");
+  return { ok: true as const };
+}
+
+export async function saveClientPayment(projectId: string, input: { approvedBudget: number; contingency: number; currency: string; invoiceNo?: string; invoiceDate?: string; invoiceAmount: number; amountReceived: number; paymentDate?: string; paymentRef?: string }) {
+  const finance = await prisma.finance.upsert({ where: { projectId }, update: {
+    approvedBudget: Number(input.approvedBudget || 0), contingency: Number(input.contingency || 0), currency: input.currency || "USD",
+    invoiceNo: input.invoiceNo || null, invoiceDate: input.invoiceDate ? new Date(`${input.invoiceDate}T12:00:00`) : null,
+    invoiceAmount: Number(input.invoiceAmount || 0), amountReceived: Number(input.amountReceived || 0),
+    paymentDate: input.paymentDate ? new Date(`${input.paymentDate}T12:00:00`) : null, paymentRef: input.paymentRef || null,
+  }, create: { projectId, approvedBudget: Number(input.approvedBudget || 0), contingency: Number(input.contingency || 0), currency: input.currency || "USD", invoiceNo: input.invoiceNo || null, invoiceDate: input.invoiceDate ? new Date(`${input.invoiceDate}T12:00:00`) : null, invoiceAmount: Number(input.invoiceAmount || 0), amountReceived: Number(input.amountReceived || 0), paymentDate: input.paymentDate ? new Date(`${input.paymentDate}T12:00:00`) : null, paymentRef: input.paymentRef || null } });
+  revalidatePath(`/projects/${projectId}`); revalidatePath("/istream/jobs"); revalidatePath("/");
+  return { ok: true as const, finance };
+}
+
+export async function setJobLifecycle(projectId: string, status: "Planned" | "Active" | "Completed" | "Paid / Closed" | "Cancelled", closureNote?: string) {
+  const [finance, unpaidSuppliers] = await Promise.all([
+    prisma.finance.findUnique({ where: { projectId } }),
+    prisma.jobExpense.count({ where: { projectId, paymentStatus: { not: "PAID" }, actualCost: { gt: 0 } } }),
+  ]);
+  if (status === "Paid / Closed") {
+    const billed = finance?.invoiceAmount || finance?.approvedBudget || 0;
+    if ((finance?.amountReceived || 0) < billed) return { ok: false as const, error: "Client payment is still outstanding. Record the full amount received before closing as paid." };
+    if (unpaidSuppliers > 0) return { ok: false as const, error: `${unpaidSuppliers} supplier expense(s) are still unpaid.` };
+  }
+  await prisma.project.update({ where: { id: projectId }, data: { status, closedAt: status === "Paid / Closed" || status === "Cancelled" ? new Date() : null, closureNote: closureNote || null } });
+  revalidatePath(`/projects/${projectId}`); revalidatePath("/istream/jobs"); revalidatePath("/");
   return { ok: true as const };
 }
 
