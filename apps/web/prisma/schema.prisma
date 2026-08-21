@@ -348,6 +348,38 @@ model MonthlyBusinessBudget {
   updatedAt     DateTime @updatedAt
 }
 
+model MonthlyOverheadBudget {
+  id        String   @id @default(uuid())
+  period    DateTime
+  category  String
+  amount    Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([period, category])
+  @@index([period])
+}
+
+model BusinessOverhead {
+  id            String    @id @default(uuid())
+  expenseDate   DateTime
+  category      String
+  payee         String
+  description   String
+  amount        Float     @default(0)
+  paymentStatus String    @default("PAID")
+  paymentDate   DateTime?
+  reference     String?
+  attachmentUrl String?
+  recurring     Boolean   @default(false)
+  expenseType   String    @default("OPERATING")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([expenseDate, category])
+  @@index([paymentStatus])
+}
+
 model JournalEntry {
   id             String          @id @default(uuid())
   title          String
