@@ -33,6 +33,7 @@ model Project {
   decisions      Decision[]
   documents      Document[]
   finance        Finance?
+  expenses       JobExpense[]
   journalEntries JournalEntry[]
   meetings       Meeting[]
   milestones     Milestone[]
@@ -307,6 +308,26 @@ model Finance {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   project        Project  @relation(fields: [projectId], references: [id])
+}
+
+model JobExpense {
+  id            String    @id @default(uuid())
+  supplier      String
+  category      String
+  description   String
+  estimatedCost Float     @default(0)
+  actualCost    Float     @default(0)
+  paymentStatus String    @default("UNPAID")
+  reference     String?
+  paymentDate   DateTime?
+  attachmentUrl String?
+  projectId     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([paymentStatus])
 }
 
 model JournalEntry {

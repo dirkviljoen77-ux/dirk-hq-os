@@ -1,172 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  getFinance,
-  updateFinance,
-} from "@/lib/actions/finance.actions";
+import { useEffect, useMemo, useState } from "react";
+import { deleteJobExpense, getFinance, saveJobExpense, updateFinance, type JobExpenseInput } from "@/lib/actions/finance.actions";
 
-type Props = {
-  projectId: string;
-};
+const blank = (projectId: string): JobExpenseInput => ({ projectId, supplier: "", category: "Crew", description: "", estimatedCost: 0, actualCost: 0, paymentStatus: "UNPAID", reference: "", paymentDate: "", attachmentUrl: "" });
 
-export default function FinancePanel({
-  projectId,
-}: Props) {
-  const [finance, setFinance] = useState({
-    approvedBudget: 0,
-    forecastCost: 0,
-    actualCost: 0,
-    contingency: 0,
-    currency: "USD",
-  });
-
-  async function loadFinance() {
-    const data = await getFinance(projectId);
-
-    if (data) {
-      setFinance(data);
-    }
-  }
-
-  useEffect(() => {
-    loadFinance();
-  }, [projectId]);
-
-  async function save() {
-    await updateFinance(projectId, finance);
-    alert("Finance saved.");
-  }
-
-  const forecastProfit = finance.approvedBudget - finance.forecastCost;
-  const actualProfit = finance.approvedBudget - finance.actualCost;
-  const margin = finance.approvedBudget ? actualProfit / finance.approvedBudget * 100 : 0;
-
-  return (
-    <>
-      <h2 style={{ marginTop: 0 }}>
-        Job Costing
-      </h2>
-
-      <FinanceField
-        label="Quoted Revenue"
-        value={finance.approvedBudget}
-        onChange={(v) =>
-          setFinance({
-            ...finance,
-            approvedBudget: v,
-          })
-        }
-      />
-
-      <FinanceField
-        label="Forecast Cost"
-        value={finance.forecastCost}
-        onChange={(v) =>
-          setFinance({
-            ...finance,
-            forecastCost: v,
-          })
-        }
-      />
-
-      <FinanceField
-        label="Actual Cost"
-        value={finance.actualCost}
-        onChange={(v) =>
-          setFinance({
-            ...finance,
-            actualCost: v,
-          })
-        }
-      />
-
-      <FinanceField
-        label="Contingency"
-        value={finance.contingency}
-        onChange={(v) =>
-          setFinance({
-            ...finance,
-            contingency: v,
-          })
-        }
-      />
-
-      <div
-        style={{
-          marginTop: 30,
-          background: "#0F172A",
-          padding: 20,
-          borderRadius: 12,
-        }}
-      >
-        <h3>Executive Summary</h3>
-
-        <p>
-          Forecast Gross Profit:
-          {" "}
-          {finance.currency} {forecastProfit.toLocaleString()}
-        </p>
-
-        <p>
-          Actual Gross Profit:
-          {" "}
-          {finance.currency} {actualProfit.toLocaleString()}
-        </p>
-        <p>Gross Margin: {margin.toFixed(1)}%</p>
-      </div>
-
-      <button
-        onClick={save}
-        style={{
-          marginTop: 24,
-          padding: "12px 20px",
-          border: "none",
-          borderRadius: 8,
-          background: "#2563EB",
-          color: "white",
-          cursor: "pointer",
-        }}
-      >
-        Save Finance
-      </button>
-    </>
-  );
-}
-
-function FinanceField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <div
-      style={{
-        marginBottom: 20,
-      }}
-    >
-      <label>{label}</label>
-
-      <input
-        type="number"
-        value={value}
-        onChange={(e) =>
-          onChange(Number(e.target.value))
-        }
-        style={{
-          width: "100%",
-          marginTop: 6,
-          padding: 10,
-          borderRadius: 8,
-          border: "1px solid #475569",
-          background: "#0F172A",
-          color: "white",
-        }}
-      />
-    </div>
-  );
+export default function FinancePanel({ projectId }: { projectId: string }) {
+  const [finance, setFinance] = useState({ approvedBudget: 0, forecastCost: 0, actualCost: 0, contingency: 0, currency: "USD" });
+  const [expenses, setExpenses] = useState<any[]>([]); const [form, setForm] = useState<JobExpenseInput>(blank(projectId));
+  const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+  async function load() { const data = await getFinance(projectId); if (data.finance) setFinance(data.finance); setExpenses(data.expenses); }
+  useEffect(() => { load(); }, [projectId]);
+  const summary = useMemo(() => {
+    const forecast = expenses.reduce((sum, row) => sum + row.estimatedCost, 0);
+    const actual = expenses.reduce((sum, row) => sum + row.actualCost, 0);
+    const outstanding = expenses.filter((row) => row.paymentStatus !== "PAID").reduce((sum, row) => sum + row.actualCost, 0);
+    const profit = finance.approvedBudget - actual;
+    return { forecast, actual, outstanding, profit, margin: finance.approvedBudget ? profit / finance.approvedBudget * 100 : 0 };
+  }, [expenses, finance.approvedBudget]);
+  const field = { width: "100%", boxSizing: "border-box" as const, padding: 9, borderRadius: 7, border: "1px solid #475569", background: "#0F172A", color: "white" };
+  const money = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: finance.currency }).format(value);
+  async function saveRevenue() { await updateFinance(projectId, { approvedBudget: finance.approvedBudget, contingency: finance.contingency, currency: finance.currency }); await load(); }
+  async function saveExpense() { setBusy(true); setError(""); const result = await saveJobExpense(form); setBusy(false); if (!result.ok) return setError(result.error); setForm(blank(projectId)); await load(); }
+  function edit(row: any) { setForm({ ...row, paymentDate: row.paymentDate ? new Date(row.paymentDate).toISOString().slice(0, 10) : "" }); }
+  async function remove(id: string) { if (!window.confirm("Delete this expense entry?")) return; await deleteJobExpense(id, projectId); await load(); }
+  return <div>
+    <h2 style={{ marginTop: 0 }}>Job Expenses &amp; Profitability</h2>
+    <div className="cards">{[["Quoted revenue", money(finance.approvedBudget)], ["Estimated costs", money(summary.forecast)], ["Actual costs", money(summary.actual)], ["Outstanding payments", money(summary.outstanding)], ["Gross profit", money(summary.profit)], ["Gross margin", `${summary.margin.toFixed(1)}%`]].map(([label, value]) => <div className="card" key={label}><span>{label}</span><strong>{value}</strong></div>)}</div>
+    <section><h3>Commercial values</h3><div className="grid three"><div><label>Quoted revenue</label><input type="number" style={field} value={finance.approvedBudget} onChange={(e) => setFinance({ ...finance, approvedBudget: Number(e.target.value) })}/></div><div><label>Contingency</label><input type="number" style={field} value={finance.contingency} onChange={(e) => setFinance({ ...finance, contingency: Number(e.target.value) })}/></div><div><label>Currency</label><input style={field} value={finance.currency} onChange={(e) => setFinance({ ...finance, currency: e.target.value.toUpperCase() })}/></div></div><button onClick={saveRevenue}>Save commercial values</button></section>
+    <section><h3>{form.id ? "Edit expense" : "Add expense"}</h3><div className="grid three"><div><label>Supplier</label><input style={field} value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })}/></div><div><label>Category</label><select style={field} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>{["Crew","Equipment","Transport","Fuel","Food","Airtime","Tollgates","Accommodation","Post-production","Other"].map((x) => <option key={x}>{x}</option>)}</select></div><div><label>Payment status</label><select style={field} value={form.paymentStatus} onChange={(e) => setForm({ ...form, paymentStatus: e.target.value })}><option value="UNPAID">Unpaid</option><option value="PART_PAID">Part paid</option><option value="PAID">Paid</option></select></div><div className="wide"><label>Description</label><input style={field} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}/></div><div><label>Estimated cost</label><input type="number" style={field} value={form.estimatedCost} onChange={(e) => setForm({ ...form, estimatedCost: Number(e.target.value) })}/></div><div><label>Actual cost</label><input type="number" style={field} value={form.actualCost} onChange={(e) => setForm({ ...form, actualCost: Number(e.target.value) })}/></div><div><label>Invoice / receipt reference</label><input style={field} value={form.reference || ""} onChange={(e) => setForm({ ...form, reference: e.target.value })}/></div><div><label>Payment date</label><input type="date" style={field} value={form.paymentDate || ""} onChange={(e) => setForm({ ...form, paymentDate: e.target.value })}/></div><div><label>Document link</label><input type="url" placeholder="Optional Drive or receipt link" style={field} value={form.attachmentUrl || ""} onChange={(e) => setForm({ ...form, attachmentUrl: e.target.value })}/></div></div>{error && <p className="error">{error}</p>}<div className="buttons"><button disabled={busy} onClick={saveExpense}>{busy ? "Saving…" : form.id ? "Save expense" : "Add expense"}</button>{form.id && <button className="secondary" onClick={() => setForm(blank(projectId))}>Cancel edit</button>}</div></section>
+    <section><h3>Expense ledger</h3><div className="table"><table><thead><tr>{["Supplier","Category","Description","Estimate","Actual","Payment","Reference","Actions"].map((x) => <th key={x}>{x}</th>)}</tr></thead><tbody>{expenses.map((row) => <tr key={row.id}><td>{row.supplier}</td><td>{row.category}</td><td>{row.description}</td><td>{money(row.estimatedCost)}</td><td>{money(row.actualCost)}</td><td>{row.paymentStatus.replace("_", " ")}</td><td>{row.attachmentUrl ? <a href={row.attachmentUrl} target="_blank" rel="noreferrer">{row.reference || "Document"}</a> : row.reference || "–"}</td><td><button className="small" onClick={() => edit(row)}>Edit</button><button className="small danger" onClick={() => remove(row.id)}>Delete</button></td></tr>)}{!expenses.length && <tr><td colSpan={8} className="empty">No expenses recorded yet.</td></tr>}</tbody></table></div></section>
+    <style jsx>{`.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}.card,section{background:#0F172A;border:1px solid #334155;border-radius:12px;padding:18px}.card span{display:block;color:#94A3B8;font-size:13px}.card strong{display:block;font-size:21px;margin-top:7px}section{margin-bottom:18px}.grid{display:grid;gap:12px;margin-bottom:14px}.three{grid-template-columns:repeat(3,1fr)}.wide{grid-column:span 2}label{display:block;color:#CBD5E1;font-size:13px;margin-bottom:6px}button{border:0;border-radius:7px;background:#2563EB;color:white;padding:10px 15px;font-weight:700;cursor:pointer}.buttons{display:flex;gap:8px}.secondary{background:#475569}.table{overflow-x:auto}table{width:100%;min-width:900px;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #334155;font-size:13px}th{color:#94A3B8}.small{padding:6px 8px;margin-right:5px}.danger{background:#991B1B}.empty{color:#94A3B8;padding:20px}.error{color:#FCA5A5}a{color:#60A5FA}@media(max-width:800px){.cards,.three{grid-template-columns:1fr}.wide{grid-column:auto}}`}</style>
+  </div>;
 }
