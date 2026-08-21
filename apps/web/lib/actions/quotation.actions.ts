@@ -49,7 +49,7 @@ async function ensureStarterData() {
 export async function getQuotationWorkspace(includeArchived = false) {
   await ensureStarterData();
   const [quotations, clients, catalogue, projects] = await Promise.all([
-    prisma.quotation.findMany({ where: includeArchived ? { deletedAt: { not: null } } : { deletedAt: null }, include: { client: true, lines: true }, orderBy: { updatedAt: "desc" } }),
+    prisma.quotation.findMany({ where: includeArchived ? { deletedAt: { not: null }, businessProjectId: null } : { deletedAt: null, businessProjectId: null }, include: { client: true, lines: true }, orderBy: { updatedAt: "desc" } }),
     prisma.businessClient.findMany({ where: { deletedAt: null }, orderBy: { company: "asc" } }),
     prisma.catalogueItem.findMany({ where: { active: true }, orderBy: { code: "asc" } }),
     prisma.project.findMany({ where: { deletedAt: null, jobNo: null }, orderBy: { name: "asc" }, select: { id: true, name: true, status: true } }),
